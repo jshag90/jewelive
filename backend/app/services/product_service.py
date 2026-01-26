@@ -11,6 +11,7 @@ class ProductService:
         return self.product_repo.get_all(db, skip, limit)
 
     def get_product(self, db: Session, product_id: int):
+        self.product_repo.increment_views(db, product_id)
         product = self.product_repo.get_by_id(db, product_id)
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")

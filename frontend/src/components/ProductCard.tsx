@@ -1,4 +1,4 @@
-import React from 'react';
+import { Link } from 'react-router-dom';
 import type { Product } from '../types/product';
 
 interface ProductCardProps {
@@ -10,7 +10,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const mainImage = images.length > 0 ? images[0] : null;
 
     return (
-        <div style={{ border: '1px solid var(--color-border)', cursor: 'pointer', backgroundColor: 'white' }}>
+        <Link to={`/products/${product.id}`} style={{ border: '1px solid var(--color-border)', cursor: 'pointer', backgroundColor: 'white', display: 'block', textDecoration: 'none', color: 'inherit' }}>
             <div style={{ aspectRatio: '1', width: '100%', overflow: 'hidden', backgroundColor: '#f9f9f9', position: 'relative' }}>
                 {mainImage ? (
                     <img src={mainImage} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -41,7 +41,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 };
 

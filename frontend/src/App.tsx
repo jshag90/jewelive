@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ProductUpload from './pages/ProductUpload';
+import ProductDetail from './pages/ProductDetail';
 // Start by creating index.css, do not import App.css
 // import './App.css'; 
 
@@ -20,6 +21,7 @@ function App() {
             <ProductUpload />
           </ProtectedRoute>
         } />
+        <Route path="/products/:id" element={<ProductDetail />} />
       </Routes>
     </Router>
   );

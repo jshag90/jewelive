@@ -1,16 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Store, MessageCircle, PlusCircle } from 'lucide-react';
+import { Search, MessageSquare, PlusCircle, Menu, ChevronRight } from 'lucide-react';
 import Swal from 'sweetalert2';
+import api from '../services/api';
+
+interface Category {
+    id: number;
+    name: string;
+    parent_id: number | null;
+    children: Category[];
+}
 
 const Header: React.FC = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+    const [activeMainCategory, setActiveMainCategory] = useState<Category | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
         const token = localStorage.getItem('token');
         setIsLoggedIn(!!token);
+        fetchCategories();
     }, []);
+
+    const fetchCategories = async () => {
+        try {
+            const response = await api.get('/categories/');
+            setCategories(response.data);
+        } catch (error) {
+            console.error('Failed to fetch categories', error);
+        }
+    };
 
     const handleLogout = () => {
         Swal.fire({
@@ -54,7 +75,7 @@ const Header: React.FC = () => {
                     ) : (
                         <Link to="/login">로그인/회원가입</Link>
                     )}
-                    <Link to="/my-store" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>내상점</Link>
+                    <Link to="/chat" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>채팅하기</Link>
                 </div>
             </div>
 
@@ -88,27 +109,94 @@ const Header: React.FC = () => {
                         <PlusCircle size={20} /> 판매하기
                     </Link>
                     <div style={{ borderLeft: '1px solid #ddd', height: '14px' }}></div>
-                    <Link to="/my-store" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: '500' }}>
-                        <Store size={20} /> 내상점
+                    <Link to="/chat" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: '500' }}>
+                        <MessageSquare size={20} /> 채팅하기
                     </Link>
-                    <div style={{ borderLeft: '1px solid #ddd', height: '14px' }}></div>
-                    <Link to="/talk" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: '500' }}>
-                        <MessageCircle size={20} /> JewelTalk
-                    </Link>
+
                 </div>
             </div>
 
             {/* Navigation Bar */}
-            <div className="container" style={{ display: 'flex', alignItems: 'center', height: '40px', gap: '2rem' }}>
-                <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                    <div style={{ width: '20px', height: '2px', backgroundColor: '#333', marginBottom: '4px' }}></div>
-                    <div style={{ width: '20px', height: '2px', backgroundColor: '#333', marginBottom: '4px' }}></div>
-                    <div style={{ width: '20px', height: '2px', backgroundColor: '#333' }}></div>
-                </button>
+            <div className="container" style={{ display: 'flex', alignItems: 'center', height: '40px', gap: '2rem', position: 'relative' }}>
+                <div
+                    onMouseEnter={() => setIsCategoryOpen(true)}
+                    onMouseLeave={() => {
+                        setIsCategoryOpen(false);
+                        setActiveMainCategory(null);
+                    }}
+                    style={{ height: '100%', display: 'flex', alignItems: 'center' }}
+                >
+                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
+                        <Menu size={24} color="#333" />
+                    </button>
+
+                    {/* Category Dropdown */}
+                    {isCategoryOpen && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '40px',
+                            left: 0,
+                            display: 'flex',
+                            backgroundColor: 'white',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                            border: '1px solid #eee',
+                            zIndex: 1000,
+                            minWidth: '200px'
+                        }}>
+                            {/* Main Categories */}
+                            <div style={{ width: '200px', borderRight: '1px solid #eee', padding: '10px 0' }}>
+                                <div style={{ padding: '10px 20px', fontWeight: 'bold', borderBottom: '1px solid #eee', marginBottom: '5px' }}>전체 카테고리</div>
+                                {categories.map(cat => (
+                                    <div
+                                        key={cat.id}
+                                        onMouseEnter={() => setActiveMainCategory(cat)}
+                                        style={{
+                                            padding: '12px 20px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            backgroundColor: activeMainCategory?.id === cat.id ? '#f9f9f9' : 'transparent',
+                                            color: activeMainCategory?.id === cat.id ? 'var(--color-primary)' : '#333',
+                                            fontWeight: activeMainCategory?.id === cat.id ? '600' : '400',
+                                            fontSize: '14px'
+                                        }}
+                                    >
+                                        {cat.name}
+                                        {cat.children && cat.children.length > 0 && <ChevronRight size={14} />}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Sub Categories */}
+                            {activeMainCategory && activeMainCategory.children && activeMainCategory.children.length > 0 && (
+                                <div style={{ width: '200px', padding: '10px 0', backgroundColor: '#fafafa' }}>
+                                    <div style={{ padding: '10px 20px', fontWeight: 'bold', borderBottom: '1px solid #eee', marginBottom: '5px', visibility: 'hidden' }}>-</div>
+                                    {activeMainCategory.children.map(sub => (
+                                        <div
+                                            key={sub.id}
+                                            style={{
+                                                padding: '12px 20px',
+                                                cursor: 'pointer',
+                                                fontSize: '14px',
+                                                color: '#666'
+                                            }}
+                                            onClick={() => {
+                                                // Handle category click navigation if needed
+                                                setIsCategoryOpen(false);
+                                            }}
+                                        >
+                                            {sub.name}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
                 <nav style={{ display: 'flex', gap: '2rem', fontSize: '15px', fontWeight: '600' }}>
                     <Link to="/">추천상품</Link>
-                    <Link to="/">카테고리</Link>
-                    <Link to="/">번개나눔</Link>
                 </nav>
             </div>
         </header>

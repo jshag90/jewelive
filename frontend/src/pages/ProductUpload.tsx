@@ -172,10 +172,24 @@ export default function ProductUpload() {
                 condition,
                 tags: JSON.stringify(tags)
             });
-            navigate('/');
+
+            Swal.fire({
+                title: '등록 완료!',
+                text: '상품이 성공적으로 등록되었습니다.',
+                icon: 'success',
+                confirmButtonColor: 'var(--color-primary)',
+                confirmButtonText: '확인'
+            }).then(() => {
+                navigate('/');
+            });
         } catch (error) {
             console.error("Upload failed", error);
-            alert("상품 등록에 실패했습니다.");
+            Swal.fire({
+                title: '등록 실패',
+                text: '상품 등록에 실패했습니다. 다시 시도해 주세요.',
+                icon: 'error',
+                confirmButtonColor: 'var(--color-primary)',
+            });
         } finally {
             setLoading(false);
         }

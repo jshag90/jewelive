@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
+from app.schemas.user import UserPublic
 
 class ProductBase(BaseModel):
     title: str
@@ -25,6 +26,10 @@ class ProductUpdate(ProductBase):
 class ProductResponse(ProductBase):
     id: int
     seller_id: int
+    seller: Optional[UserPublic] = None
+    views: int = 0
+    likes: int = 0
+    chat_count: int = 0
     created_at: datetime
     updated_at: datetime
 

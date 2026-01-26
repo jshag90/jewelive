@@ -27,6 +27,10 @@ class Product(Base):
     condition = Column(String(50), nullable=True)
     tags = Column(Text, nullable=True) # JSON or comma-separated
     
+    views = Column(Integer, default=0)
+    likes = Column(Integer, default=0)
+    chat_count = Column(Integer, default=0)
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
