@@ -613,9 +613,15 @@ function createApp({ staticDir }) {
 function startServer({ staticDir }) {
   const app = createApp({ staticDir });
   const port = Number(process.env.PORT || 8080);
+  const host = process.env.HOST || '0.0.0.0';
 
-  app.listen(port, () => {
-    console.log(`Jewel-Live server listening on ${port}`);
+  const server = app.listen(port, host, () => {
+    console.log(`Jewel-Live server listening on ${host}:${port}`);
+  });
+
+  server.on('error', (error) => {
+    console.error('Jewel-Live server failed to start:', error);
+    process.exit(1);
   });
 }
 
