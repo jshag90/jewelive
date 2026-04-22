@@ -18,6 +18,7 @@ outputFiles:
   serverApp:
     include:
       - dist
+      - node_modules
       - server.cjs
       - runtime-server.cjs
       - package.json

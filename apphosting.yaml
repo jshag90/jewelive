@@ -6,13 +6,14 @@ runConfig:
   maxInstances: 1
 
 scripts:
-  buildCommand: npm run build
+  buildCommand: npm ci && npm run build
   runCommand: npm start
 
 outputFiles:
   serverApp:
     include:
       - frontend/dist
+      - node_modules
       - apphosting-server.js
       - frontend/runtime-server.cjs
       - package.json
