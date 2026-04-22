@@ -1,0 +1,53 @@
+{
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "jewel-live-api",
+      "runtime": "python313",
+      "ignore": [
+        "venv",
+        "__pycache__",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log"
+      ]
+    }
+  ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "hosting": {
+    "site": "jewel-live",
+    "public": "frontend/dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "apphosting": [
+    {
+      "backendId": "jewel-live-web",
+      "rootDir": "frontend",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "functions",
+        "backend",
+        "uploads"
+      ]
+    }
+  ]
+}

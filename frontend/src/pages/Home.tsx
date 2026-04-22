@@ -3,9 +3,7 @@ import api from '../services/api';
 import type { Product } from '../types/product';
 import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
-import { ArrowRight } from 'lucide-react';
-
-import { Gem, Ticket, Watch, Crown, Shirt, MoreHorizontal, Search, Star } from 'lucide-react';
+import { ArrowRight, Crown, Gem, Star, Ticket, Watch } from 'lucide-react';
 
 interface Category {
     id: number;

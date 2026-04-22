@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.api.deps import get_current_user
@@ -16,10 +16,11 @@ from app.models.user import User
 router = APIRouter()
 product_service = ProductService()
 ai_pricing_service = AIPricingService()
-UPLOAD_DIR = "D:\\Dev\\EveryZoom\\uploads"
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "D:\\Dev\\EveryZoom\\uploads")
 
 @router.post("/upload")
 async def upload_image(
+    request: Request,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user)
 ):
@@ -60,7 +61,7 @@ async def upload_image(
         raise e
 
     return {
-        "url": f"http://localhost:8000/uploads/{filename}",
+        "url": str(request.base_url).rstrip("/") + f"/uploads/{filename}",
         "predicted_price": predicted_price
     }
 

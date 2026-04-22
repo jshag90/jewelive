@@ -4,14 +4,21 @@ from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import os
+from pathlib import Path
 
 app = FastAPI(title="Jewelive Jewelry Trading", version="0.1.0")
 
 # CORS Setup
-origins = [
-    "http://localhost:5173",  # React default port
+default_origins = [
+    "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
+configured_origins = os.getenv("CORS_ORIGINS", "")
+origins = [
+    origin.strip()
+    for origin in configured_origins.split(",")
+    if origin.strip()
+] or default_origins
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,7 +29,10 @@ app.add_middleware(
 )
 
 from fastapi.staticfiles import StaticFiles
-app.mount("/uploads", StaticFiles(directory="D:\\Dev\\EveryZoom\\uploads"), name="uploads")
+
+upload_dir = Path(os.getenv("UPLOAD_DIR", "D:\\Dev\\EveryZoom\\uploads"))
+upload_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(upload_dir)), name="uploads")
 
 import traceback
 from fastapi import Request
