@@ -9,6 +9,10 @@
     "node": "20.x || 22.x"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "bcryptjs": "^3.0.2",
+    "express": "^4.21.2",
+    "firebase-admin": "^13.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2"
   }
 }

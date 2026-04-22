@@ -1,16 +1,6 @@
-const express = require('express');
 const path = require('path');
+const { startServer } = require('./frontend/runtime-server.cjs');
 
-const app = express();
-const port = Number(process.env.PORT || 8080);
-const distPath = path.join(__dirname, 'frontend', 'dist');
-
-app.use(express.static(distPath));
-
-app.get('*', (_req, res) => {
-  res.sendFile(path.join(distPath, 'index.html'));
-});
-
-app.listen(port, () => {
-  console.log(`Jewel-Live App Hosting root server listening on ${port}`);
+startServer({
+  staticDir: path.join(__dirname, 'frontend', 'dist'),
 });

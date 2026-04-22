@@ -14,5 +14,6 @@ outputFiles:
     include:
       - frontend/dist
       - apphosting-server.js
+      - frontend/runtime-server.cjs
       - package.json
       - package-lock.json

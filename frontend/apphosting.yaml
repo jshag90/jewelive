@@ -19,5 +19,6 @@ outputFiles:
     include:
       - dist
       - server.cjs
+      - runtime-server.cjs
       - package.json
       - package-lock.json
