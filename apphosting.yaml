@@ -1,0 +1,18 @@
+# Fallback App Hosting configuration when the backend root directory is the
+# repository root instead of /frontend.
+
+runConfig:
+  minInstances: 0
+  maxInstances: 1
+
+scripts:
+  buildCommand: npm run build
+  runCommand: npm start
+
+outputFiles:
+  serverApp:
+    include:
+      - frontend/dist
+      - apphosting-server.js
+      - package.json
+      - package-lock.json

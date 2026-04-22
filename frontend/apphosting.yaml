@@ -9,3 +9,15 @@
 runConfig:
   minInstances: 0
   maxInstances: 1
+
+scripts:
+  buildCommand: npm ci && npm run build
+  runCommand: npm start
+
+outputFiles:
+  serverApp:
+    include:
+      - dist
+      - server.js
+      - package.json
+      - package-lock.json

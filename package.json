@@ -1,0 +1,14 @@
+{
+  "name": "jewel-live-apphosting-root",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix frontend ci && npm --prefix frontend run build",
+    "start": "node apphosting-server.js"
+  },
+  "engines": {
+    "node": "20.x || 22.x"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
