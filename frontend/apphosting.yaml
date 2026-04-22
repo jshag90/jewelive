@@ -18,6 +18,6 @@ outputFiles:
   serverApp:
     include:
       - dist
-      - server.js
+      - server.cjs
       - package.json
       - package-lock.json
