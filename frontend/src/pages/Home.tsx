@@ -7,6 +7,16 @@ import TopBar from '../components/TopBar';
 import ProductCard from '../components/ProductCard';
 import type { HomePayload, Product, QuickAction } from '../types/product';
 
+function quickActionRoute(qa: QuickAction): string {
+  const t = qa.title || '';
+  if (t.includes('AI')) return '/sell';
+  if (t.includes('판매')) return '/sell';
+  if (t.includes('시세')) return '/letter';
+  if (t.includes('예물')) return '/lounge?tab=wiki';
+  if (t.includes('커플')) return '/search?q=' + encodeURIComponent('커플링');
+  return '/explore';
+}
+
 export default function HomePage() {
   const [data, setData] = useState<HomePayload | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('전체');
@@ -90,14 +100,15 @@ export default function HomePage() {
 
           <div className="jl-quick">
             {data.quick_actions.map((qa: QuickAction) => {
-              const dark = qa.fg === '#ffffff';
+              const accent = qa.fg === '#ffffff';
+              const to = quickActionRoute(qa);
               return (
                 <button
                   key={qa.id}
                   type="button"
-                  className={`jl-quick__pill ${dark ? 'jl-quick__pill--dark' : ''}`}
-                  style={dark ? undefined : { background: qa.bg }}
-                  onClick={() => navigate('/explore')}
+                  className={`jl-quick__pill ${accent ? 'jl-quick__pill--accent' : ''}`}
+                  style={accent ? undefined : { background: qa.bg }}
+                  onClick={() => navigate(to)}
                 >
                   <span className="jl-quick__pill-icon" aria-hidden>
                     {qa.icon}

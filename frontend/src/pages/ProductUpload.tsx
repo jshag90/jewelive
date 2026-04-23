@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Camera, ChevronLeft, ChevronRight, Sparkles, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import AppShell from '../components/AppShell';
 import Toast from '../components/Toast';
 import BottomSheet from '../components/BottomSheet';
-import type { Brand, Category } from '../types/product';
+import type { Category } from '../types/product';
 
 interface ConditionOption {
   label: string;
@@ -20,18 +20,29 @@ const CONDITIONS: ConditionOption[] = [
   { label: '고장/파손 상품', desc: '기능 이상이나 외관 손상 등으로 수리/수선 필요' },
 ];
 
+const MATERIALS = [
+  { id: 'gold-yellow', name: '옐로우골드' },
+  { id: 'gold-white', name: '화이트골드' },
+  { id: 'gold-rose', name: '로즈골드' },
+  { id: 'silver', name: '실버' },
+  { id: 'diamond', name: '다이아몬드' },
+  { id: 'pearl', name: '진주' },
+  { id: 'gem', name: '유색보석' },
+  { id: 'other', name: '기타' },
+];
+
 export default function ProductUploadPage() {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [brands, setBrands] = useState<Brand[]>([]);
   const [title, setTitle] = useState('');
+  const [brand, setBrand] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [aiPrice, setAiPrice] = useState<number | null>(null);
   const [retailPrice, setRetailPrice] = useState('');
   const [condition, setCondition] = useState('');
+  const [material, setMaterial] = useState<string>('');
   const [images, setImages] = useState<string[]>([]);
-  const [brandId, setBrandId] = useState<number | null>(null);
   const [mainCat, setMainCat] = useState<Category | null>(null);
   const [subCat, setSubCat] = useState<Category | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -41,7 +52,6 @@ export default function ProductUploadPage() {
   // sheets
   const [categorySheet, setCategorySheet] = useState(false);
   const [conditionSheet, setConditionSheet] = useState(false);
-  const [brandSheet, setBrandSheet] = useState(false);
   const [pendingMain, setPendingMain] = useState<Category | null>(null);
 
   const navigate = useNavigate();
@@ -49,12 +59,8 @@ export default function ProductUploadPage() {
   useEffect(() => {
     (async () => {
       try {
-        const [catsRes, brandsRes] = await Promise.all([
-          api.get('/categories/'),
-          api.get('/brands'),
-        ]);
-        setCategories(catsRes.data || []);
-        setBrands(brandsRes.data || []);
+        const res = await api.get('/categories/');
+        setCategories(res.data || []);
       } catch (err) {
         console.error(err);
       }
@@ -66,11 +72,6 @@ export default function ProductUploadPage() {
       setPendingMain(mainCat);
     }
   }, [categorySheet, mainCat]);
-
-  const selectedBrand = useMemo(
-    () => brands.find((b) => b.id === brandId) || null,
-    [brands, brandId],
-  );
 
   async function handleImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -85,7 +86,9 @@ export default function ProductUploadPage() {
       setImages((prev) => [...prev, res.data.url].slice(0, 6));
       if (res.data.predicted_price && !aiPrice) {
         setAiPrice(res.data.predicted_price);
-        setToast(`AI 추천가: ${Math.round(res.data.predicted_price / 10000).toLocaleString()}만원`);
+        setToast(
+          `AI 감정가 추천 · ${Math.round(res.data.predicted_price / 10000).toLocaleString()}만원`,
+        );
       }
     } catch (err) {
       console.error(err);
@@ -102,18 +105,20 @@ export default function ProductUploadPage() {
       return;
     }
     const payload = {
-      title: selectedBrand?.name || title,
+      title,
       subtitle: subtitle || title,
       description,
       price: Number(price || aiPrice || 0),
       retail_price: retailPrice ? Number(retailPrice) : null,
-      brand: selectedBrand?.name || null,
-      brand_id: selectedBrand?.id || null,
+      brand: brand.trim() || null,
+      brand_id: null,
       category_main: mainCat.name,
       category_medium: subCat?.name || null,
+      material: material || null,
       condition,
       images: JSON.stringify(images),
-      is_ready: false,
+      is_ready: true, // AI 감정 완료 뱃지
+      badge: 'AI 감정',
     };
     try {
       setSubmitting(true);
@@ -146,6 +151,9 @@ export default function ProductUploadPage() {
           <div className="jl-upload-row__label">
             이미지 <span>*</span>
           </div>
+          <div className="jl-upload-hint">
+            <Sparkles size={14} /> 사진을 올리면 AI 감정가를 추천해드려요
+          </div>
           <div className="jl-upload-photos">
             <label className="jl-upload-photo">
               <Camera size={22} />
@@ -171,22 +179,6 @@ export default function ProductUploadPage() {
         <button
           type="button"
           className="jl-upload-row jl-upload-picker"
-          onClick={() => setBrandSheet(true)}
-        >
-          <div className="jl-upload-row__label">
-            브랜드 <span>*</span>
-          </div>
-          <div className="jl-upload-picker__value">
-            <span className={selectedBrand ? '' : 'jl-upload-picker__placeholder'}>
-              {selectedBrand ? selectedBrand.name : '브랜드를 선택해 주세요'}
-            </span>
-            <ChevronRight size={18} color="var(--jl-muted-2)" />
-          </div>
-        </button>
-
-        <button
-          type="button"
-          className="jl-upload-row jl-upload-picker"
           onClick={() => setCategorySheet(true)}
         >
           <div className="jl-upload-row__label">
@@ -208,7 +200,7 @@ export default function ProductUploadPage() {
           </div>
           <input
             type="text"
-            placeholder="예) 알함브라 네크리스 10모티브"
+            placeholder="예) 14K 데일리 실반지"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={40}
@@ -216,12 +208,39 @@ export default function ProductUploadPage() {
         </div>
 
         <div className="jl-upload-row">
-          <div className="jl-upload-row__label">상세 모델명</div>
+          <div className="jl-upload-row__label">상세 (소재·사이즈 등)</div>
           <input
             type="text"
-            placeholder="예) 빈티지 · 화이트골드 · 칼세도니"
+            placeholder="예) 옐로우골드 · 11호 · 1.5mm"
             value={subtitle}
             onChange={(e) => setSubtitle(e.target.value)}
+          />
+        </div>
+
+        <div className="jl-upload-row">
+          <div className="jl-upload-row__label">소재</div>
+          <div className="jl-chip-group">
+            {MATERIALS.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                className={`jl-chip-option ${material === m.id ? 'is-active' : ''}`}
+                onClick={() => setMaterial(material === m.id ? '' : m.id)}
+              >
+                {m.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="jl-upload-row">
+          <div className="jl-upload-row__label">브랜드 (선택)</div>
+          <input
+            type="text"
+            placeholder="공방/제조사가 있다면 입력해 주세요"
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+            maxLength={30}
           />
         </div>
 
@@ -247,14 +266,14 @@ export default function ProductUploadPage() {
           </div>
           <input
             type="number"
-            placeholder={aiPrice ? `AI 추천 ${aiPrice.toLocaleString()}원` : '가격을 입력해 주세요.'}
+            placeholder={aiPrice ? `AI 감정가 ${aiPrice.toLocaleString()}원` : '가격을 입력해 주세요.'}
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             inputMode="numeric"
           />
           {aiPrice ? (
             <div className="jl-upload-ai">
-              <Sparkles size={14} /> AI 추천 {Math.round(aiPrice / 10000).toLocaleString()}만원
+              <Sparkles size={14} /> AI 감정가 {Math.round(aiPrice / 10000).toLocaleString()}만원 추천
             </div>
           ) : null}
         </div>
@@ -273,7 +292,7 @@ export default function ProductUploadPage() {
         <div className="jl-upload-row">
           <div className="jl-upload-row__label">상세 설명</div>
           <textarea
-            placeholder="브랜드, 모델명, 구매 시기, 하자 유무 등 상품 설명을 최대한 자세히 적어주세요."
+            placeholder="소재·사이즈·구매 시기·보관 상태 등 상품 설명을 자세히 적어주세요."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             maxLength={2500}
@@ -293,35 +312,6 @@ export default function ProductUploadPage() {
           {submitting ? '등록 중…' : '등록 완료'}
         </button>
       </div>
-
-      {/* Brand sheet */}
-      <BottomSheet
-        open={brandSheet}
-        title="브랜드 선택"
-        onClose={() => setBrandSheet(false)}
-        fullHeight
-      >
-        <ul className="jl-sheet__list">
-          {brands.map((b) => (
-            <li key={b.id}>
-              <button
-                type="button"
-                className={`jl-sheet__row ${brandId === b.id ? 'is-active' : ''}`}
-                onClick={() => {
-                  setBrandId(b.id);
-                  setBrandSheet(false);
-                }}
-              >
-                <div>
-                  <div className="jl-sheet__row-title">{b.name}</div>
-                  {b.latin ? <div className="jl-sheet__row-sub">{b.latin}</div> : null}
-                </div>
-                {brandId === b.id ? <span className="jl-sheet__dot" /> : null}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </BottomSheet>
 
       {/* Category sheet: 2-step drill */}
       <BottomSheet

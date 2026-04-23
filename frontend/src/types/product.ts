@@ -26,6 +26,7 @@ export interface Product {
   category_main?: string | null;
   category_medium?: string | null;
   category_small?: string | null;
+  material?: string | null;
   condition?: string | null;
   tags?: string | null;
   badge?: string | null;
@@ -37,6 +38,20 @@ export interface Product {
   chat_count: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface Material {
+  id: string;
+  name: string;
+  emoji: string;
+  color: string;
+}
+
+export interface PriceBand {
+  id: string;
+  label: string;
+  min: number;
+  max: number | null;
 }
 
 export interface Category {
@@ -84,13 +99,14 @@ export interface HomePayload {
 }
 
 export interface ExploreSection {
-  brand: Brand;
+  material: Material;
   products: Product[];
 }
 
 export interface ExplorePayload {
   categories: Category[];
-  brands: Brand[];
+  materials: Material[];
+  price_bands: PriceBand[];
   sections: ExploreSection[];
 }
 

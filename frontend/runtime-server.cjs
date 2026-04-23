@@ -107,65 +107,71 @@ const defaultCategories = [
   },
 ];
 
-const defaultBrands = [
-  { id: 1, name: '반클리프 아펠', latin: 'Van Cleef & Arpels', logo: 'VC&A', popular: ['알함브라', '뻬를레', '프리볼', '프로그'] },
-  { id: 2, name: '까르띠에', latin: 'Cartier', logo: 'Cartier', popular: ['러브', '저스트 앵 끌루', '트리니티', '팬더'] },
-  { id: 3, name: '불가리', latin: 'BVLGARI', logo: 'BVLGARI', popular: ['비 제로 원', '디바스 드림', '세르펜티', '피오레'] },
-  { id: 4, name: '부쉐론', latin: 'Boucheron', logo: 'Boucheron', popular: ['퀘이트 드 파리', '세르펑 보헴', '쥬라'] },
-  { id: 5, name: '티파니', latin: 'Tiffany & Co.', logo: 'Tiffany', popular: ['T1', '빅토리아', '하드웨어', '솔레스트'] },
-  { id: 6, name: '샤넬', latin: 'CHANEL', logo: 'CHANEL', popular: ['코코 크러쉬', '까멜리아', '콤부즈'] },
-  { id: 7, name: '다미아니', latin: 'DAMIANI', logo: 'Damiani', popular: ['벨 에포크', '미니 벨 에포크'] },
-  { id: 8, name: '프레드', latin: 'FRED', logo: 'FRED', popular: ['포스 10', '쇼몽 빅토리'] },
-  { id: 9, name: '쇼메', latin: 'Chaumet', logo: 'Chaumet', popular: ['조세핀', '리앙'] },
-  { id: 10, name: '에르메스', latin: 'HERMÈS', logo: 'HERMÈS', popular: ['클릭 아슈', '샨 다흐크'] },
-  { id: 11, name: '디올', latin: 'Dior', logo: 'Dior', popular: ['로즈 드 방', '자디오'] },
-  { id: 12, name: '셀린느', latin: 'CELINE', logo: 'CELINE', popular: ['트리옹프'] },
-  { id: 13, name: '쇼파드', latin: 'Chopard', logo: 'Chopard', popular: ['해피 다이아몬드', '아이스 큐브'] },
+// Material-based discovery facets replace the old luxury brand catalog.
+const defaultMaterials = [
+  { id: 'gold-yellow', name: '옐로우골드', emoji: '🟡', color: '#e3b34a' },
+  { id: 'gold-white', name: '화이트골드', emoji: '⚪', color: '#d9d9dc' },
+  { id: 'gold-rose', name: '로즈골드', emoji: '🌸', color: '#e4b2a8' },
+  { id: 'silver', name: '실버', emoji: '🔘', color: '#b7bbc2' },
+  { id: 'diamond', name: '다이아몬드', emoji: '💎', color: '#9ad7ff' },
+  { id: 'pearl', name: '진주', emoji: '🫧', color: '#f3e8d8' },
+  { id: 'gem', name: '유색보석', emoji: '🟣', color: '#9b6adc' },
+  { id: 'other', name: '기타', emoji: '🧿', color: '#cfcfcf' },
 ];
 
+const defaultPriceBands = [
+  { id: 'b1', label: '10만원 이하', min: 0, max: 100_000 },
+  { id: 'b2', label: '10~30만원', min: 100_000, max: 300_000 },
+  { id: 'b3', label: '30~100만원', min: 300_000, max: 1_000_000 },
+  { id: 'b4', label: '100만원 이상', min: 1_000_000, max: null },
+];
+
+// Retained so existing /api/brands consumers don't 500 during transition.
+const defaultBrands = [];
+
 const defaultWiki = [
-  { id: 1, product_name: '티파니 페이퍼플라워 링', product_sub: '로즈/핑크골드 · 풀 파베', price: 2_200_000, traded_at: '2026-04-23T14:15:00+09:00', image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=600&q=60' },
-  { id: 2, product_name: '에르메스 클릭 아슈 브레이슬릿', product_sub: '기타', price: 690_000, traded_at: '2026-04-22T11:02:00+09:00', image: 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=600&q=60' },
-  { id: 3, product_name: '반클리프 아펠 알함브라 네크리스', product_sub: '빈티지 · 화이트골드 · 칼세도니', price: 14_000_000, traded_at: '2026-04-21T09:40:00+09:00', image: 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=600&q=60' },
-  { id: 4, product_name: '까르띠에 러브 브레이슬릿', product_sub: '옐로우골드 · 사이즈 17', price: 7_400_000, traded_at: '2026-04-20T18:21:00+09:00', image: 'https://images.unsplash.com/photo-1583937443351-26cdac3f7b4c?auto=format&fit=crop&w=600&q=60' },
+  { id: 1, product_name: '14K 데일리 실반지', product_sub: '옐로우골드 · 사이즈 11호', price: 128_000, traded_at: '2026-04-23T14:15:00+09:00', image: 'https://images.unsplash.com/photo-1603974372039-adc49044b6bd?auto=format&fit=crop&w=600&q=60' },
+  { id: 2, product_name: '실버 큐빅 스터드 귀걸이', product_sub: '925 스털링 실버', price: 24_000, traded_at: '2026-04-22T11:02:00+09:00', image: 'https://images.unsplash.com/photo-1535632066927-ec20c7a5e989?auto=format&fit=crop&w=600&q=60' },
+  { id: 3, product_name: '다이아 0.3ct 솔리테어 목걸이', product_sub: '화이트골드 · VS1 · AI 감정가 적용', price: 1_180_000, traded_at: '2026-04-21T09:40:00+09:00', image: 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=600&q=60' },
+  { id: 4, product_name: '담수진주 A급 네크리스', product_sub: '7.5~8mm · 실버 체인', price: 210_000, traded_at: '2026-04-20T18:21:00+09:00', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=600&q=60' },
 ];
 
 const defaultTradeReviews = [
-  { id: 1, title: '첫 빈티지 구매였는데 정말 꼼꼼하게 감정해주셨어요.', author: '민지*', rating: 5, summary: '판매자 분이 사진 추가 요청도 잘 받아주시고, 감정 과정이 투명해서 믿음이 갔어요.', created_at: '2026-04-23T10:12:00+09:00' },
-  { id: 2, title: '반클리프 알함브라 체인 교체 가능한 곳 추천받았어요', author: '세현*', rating: 5, summary: '판매자가 A/S 가능한 오피셜 매장도 같이 공유해주셔서 믿고 구매했어요.', created_at: '2026-04-21T21:44:00+09:00' },
-  { id: 3, title: '처음 판매해봤는데 빠르게 팔려서 놀랐어요', author: '주원*', rating: 4, summary: 'JEWELIVE 레디로 등록하니까 이틀만에 거래 성사. 정가 대비 60% 수준으로 가는게 체감되네요.', created_at: '2026-04-19T08:02:00+09:00' },
+  { id: 1, title: 'AI 감정가가 실거래 가격과 거의 일치했어요!', author: '민지*', rating: 5, summary: '14K 커플링 팔았는데 Jewelive가 제안한 가격 그대로 1시간만에 거래. 감정가 덕분에 흥정 스트레스가 없었어요.', created_at: '2026-04-23T10:12:00+09:00' },
+  { id: 2, title: '처음 판매해봤는데 AI가 가격 잡아줘서 수월했어요', author: '세현*', rating: 5, summary: '엄마 금목걸이를 팔았는데 순금 함량까지 반영해서 추천가가 나와 믿고 올릴 수 있었어요.', created_at: '2026-04-21T21:44:00+09:00' },
+  { id: 3, title: '다이아 0.3ct 솔리테어 구매 후기', author: '주원*', rating: 4, summary: '판매자분이 AI 감정가 + 감정서까지 같이 공유해주셔서 안심하고 결제했어요. 포장도 깔끔!', created_at: '2026-04-19T08:02:00+09:00' },
 ];
 
 const defaultWanted = [
-  { id: 1, brand: '반클리프 아펠', product: '빈티지 알함브라 20모티브', budget: 18_000_000, note: '가드링 있는 매물 우선이요. 신속거래 가능합니다.', created_at: '2026-04-23T12:20:00+09:00' },
-  { id: 2, brand: '까르띠에', product: '러브 링 (핑크골드, 다이아 세팅)', budget: 3_200_000, note: '사이즈 50~52 사이 구합니다. 보증서 있는 매물 부탁드려요.', created_at: '2026-04-22T09:05:00+09:00' },
-  { id: 3, brand: '티파니', product: 'T1 링 와이드', budget: 2_800_000, note: '상태 양호하면 연락 부탁드립니다.', created_at: '2026-04-21T17:32:00+09:00' },
+  { id: 1, brand: null, product: '14K 옐로우골드 커플링 (10호·13호)', budget: 380_000, note: '결혼 예물용으로 구매하려고 해요. 심플한 디자인 선호, 각인 여부 상관없습니다.', created_at: '2026-04-23T12:20:00+09:00' },
+  { id: 2, brand: null, product: '다이아 0.2~0.3ct 솔리테어 목걸이', budget: 900_000, note: 'G·VS급 이상, 감정서 있는 매물만 찾아요. AI 감정가 공유 가능하신 분 환영!', created_at: '2026-04-22T09:05:00+09:00' },
+  { id: 3, brand: null, product: '진주 네크리스 (담수진주 6~8mm)', budget: 150_000, note: '엄마 생신 선물용입니다. 상태 깨끗한 매물 부탁드립니다.', created_at: '2026-04-21T17:32:00+09:00' },
 ];
 
 const defaultNotices = [
-  { id: 1, tag: 'EVENT', title: '회원가입하고 최대 50만원 쿠폰팩 받으세요', body: '신규 회원 대상 할인 쿠폰팩 6종을 지금 바로 지급해드려요.', pinned: true, created_at: '2026-04-20T09:00:00+09:00' },
-  { id: 2, tag: 'NOTICE', title: '4월 감정 서비스 일정 안내', body: 'JEWELIVE 라운지 감정 서비스가 4/28(월) 오프라인 센터에서 오픈합니다.', pinned: false, created_at: '2026-04-18T14:30:00+09:00' },
-  { id: 3, tag: 'EVENT', title: '신용카드 최대 6개월 무이자 할부', body: 'JEWELIVE x Payments. 갖고 싶었던 주얼리를 지금 부담 없이 소장하세요.', pinned: false, created_at: '2026-04-15T09:00:00+09:00' },
+  { id: 1, tag: 'EVENT', title: 'AI 감정가 무료 체험 이벤트', body: '신규 회원은 최대 5건까지 AI 감정가 리포트를 무료로 받아볼 수 있어요.', pinned: true, created_at: '2026-04-20T09:00:00+09:00' },
+  { id: 2, tag: 'NOTICE', title: '이번 주 금·은 시세 업데이트', body: '4월 넷째 주 순금·은 시세가 거래레터에 반영되었습니다. AI 감정가에도 자동 적용돼요.', pinned: false, created_at: '2026-04-18T14:30:00+09:00' },
+  { id: 3, tag: 'EVENT', title: '첫 거래 성사 시 포인트 5,000P', body: 'Jewelive에서 첫 판매 또는 첫 구매 성공 시 마이페이지에 5,000 포인트가 바로 적립돼요.', pinned: false, created_at: '2026-04-15T09:00:00+09:00' },
 ];
 
 const defaultLetters = [
-  { id: 1, issue: 'Vol. 027', title: '2026년 봄, 가장 많이 팔린 브랜드 TOP 5', excerpt: '반클리프 아펠, 까르띠에, 불가리가 상위권을 차지했으며, 거래 가격대는 평균 12% 상승했습니다.', cover: 'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=800&q=60', created_at: '2026-04-22T08:00:00+09:00', is_new: true },
-  { id: 2, issue: 'Vol. 026', title: '실거래 데이터로 본 "빈티지 알함브라" 가치', excerpt: '최근 6개월간 JEWELIVE 거래 데이터를 통해 빈티지 알함브라 10모티브의 시세 변동을 분석했어요.', cover: 'https://images.unsplash.com/photo-1505944270255-72b8c68c6a70?auto=format&fit=crop&w=800&q=60', created_at: '2026-04-15T08:00:00+09:00', is_new: true },
-  { id: 3, issue: 'Vol. 025', title: '이번 주 가장 뜨거운 "찾고 있어요"', excerpt: '지난주 우리 라운지에서 가장 많이 요청된 매물을 한눈에 모아봤어요.', cover: 'https://images.unsplash.com/photo-1535632066927-ec20c7a5e989?auto=format&fit=crop&w=800&q=60', created_at: '2026-04-08T08:00:00+09:00', is_new: false },
+  { id: 1, issue: 'Vol. 027', title: '이번 주 금·은 시세 브리핑', excerpt: '순금(24K) 1돈 시세가 전주 대비 0.8% 상승했습니다. Jewelive AI 감정가 엔진에도 자동 반영되어, 금반지·금목걸이 추천가가 업데이트됐어요.', cover: 'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=800&q=60', created_at: '2026-04-22T08:00:00+09:00', is_new: true },
+  { id: 2, issue: 'Vol. 026', title: '다이아몬드 구매 전 알아야 할 4C', excerpt: 'Carat·Cut·Color·Clarity. AI 감정가가 어떻게 4C 정보를 토대로 예상 가격을 계산하는지, 초보자도 이해할 수 있게 풀어봤어요.', cover: 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=800&q=60', created_at: '2026-04-15T08:00:00+09:00', is_new: true },
+  { id: 3, issue: 'Vol. 025', title: '커플링 베스트 셀러 분석', excerpt: 'Jewelive 실거래 데이터 기준 20~30대가 가장 많이 구매한 커플링 유형과 평균 가격대를 정리했어요.', cover: 'https://images.unsplash.com/photo-1535632066927-ec20c7a5e989?auto=format&fit=crop&w=800&q=60', created_at: '2026-04-08T08:00:00+09:00', is_new: false },
 ];
 
 const defaultBannerSlides = [
-  { id: 1, badge: 'JEWELIVE X Payments', title: '신용카드 최대 6개월\n무이자 할부 혜택', sub: '갖고 싶었던 주얼리, 지금 부담없이 소장하세요!', bg: 'linear-gradient(135deg, #e6d9d1 0%, #c9bbb0 100%)', image: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?auto=format&fit=crop&w=1200&q=60', accent: '#1a1a1a' },
-  { id: 2, badge: 'SPRING 2026', title: '라운지 감정\n서비스 OPEN', sub: '오프라인 감정센터에서 직접 상담받아보세요.', bg: 'linear-gradient(135deg, #f5e9df 0%, #e4c4a8 100%)', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1200&q=60', accent: '#1a1a1a' },
-  { id: 3, badge: 'FEATURED', title: '신상 New Arrivals\n10% 쿠폰 증정', sub: '매주 새로 입고되는 프리미엄 주얼리를 만나보세요.', bg: 'linear-gradient(135deg, #fce6de 0%, #f4bba6 100%)', image: 'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=1200&q=60', accent: '#1a1a1a' },
+  { id: 1, badge: 'AI 감정가', title: '사진 한 장이면\n내 주얼리 가치를 알려드려요', sub: '14K 반지부터 다이아 목걸이까지, AI가 실거래 데이터 기반으로 추천가를 제안합니다.', bg: 'linear-gradient(135deg, #ffe8df 0%, #ffb99c 100%)', image: 'https://images.unsplash.com/photo-1603974372039-adc49044b6bd?auto=format&fit=crop&w=1200&q=60', accent: '#1a1a1a' },
+  { id: 2, badge: '금·은 시세 연동', title: '오늘의 시세 반영\n투명한 거래가', sub: '매주 업데이트되는 금·은 시세를 AI 감정가에 자동 반영해요.', bg: 'linear-gradient(135deg, #fff3d8 0%, #f5c875 100%)', image: 'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=1200&q=60', accent: '#1a1a1a' },
+  { id: 3, badge: 'NEW', title: '지금 뜨는\n데일리 주얼리', sub: '10만원대 실반지부터 예물 다이아까지, 합리적인 가격으로 만나보세요.', bg: 'linear-gradient(135deg, #eaf3ff 0%, #c7d8f5 100%)', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1200&q=60', accent: '#1a1a1a' },
 ];
 
 const defaultQuickActions = [
-  { id: 1, icon: '💍', title: '인기 목걸이 컬렉션', subtitle: null, bg: '#f7ece7' },
-  { id: 2, icon: '✨', title: '심플 룩에 포인트', subtitle: null, bg: '#fde7df' },
-  { id: 3, icon: '🛒', title: 'JEWELIVE 레디', subtitle: '보고 구매', bg: '#1b3968', fg: '#ffffff' },
-  { id: 4, icon: '📦', title: '위탁 판매하기', subtitle: null, bg: '#fdeedb' },
-  { id: 5, icon: '💎', title: 'JEWELIVE 라운지', subtitle: 'Lounge OPEN', bg: '#f2efea' },
+  { id: 1, icon: '🤖', title: 'AI 감정가', subtitle: '지금 분석', bg: '#e85d3c', fg: '#ffffff' },
+  { id: 2, icon: '📸', title: '판매하기', subtitle: null, bg: '#fde7df' },
+  { id: 3, icon: '💍', title: '커플링 모음', subtitle: null, bg: '#fff3ee' },
+  { id: 4, icon: '📊', title: '금·은 시세', subtitle: 'Daily', bg: '#fff3d8' },
+  { id: 5, icon: '🎁', title: '예물 가이드', subtitle: null, bg: '#f2efea' },
 ];
 
 const SYSTEM_SELLER_ID = 'jewelive-system';
@@ -174,19 +180,148 @@ const SYSTEM_SELLER_ID = 'jewelive-system';
 // data is replaced on the next deploy.
 const SEED_VERSIONS = {
   categories: 2,
-  brands: 1,
-  products: 2,
+  brands: 2, // 1 → 2: luxury catalog cleared (general jewelry concept)
+  products: 3, // 2 → 3: general jewelry seed
 };
 
+// General jewelry seed. brand=null = 노브랜드. material 필드로 소재 필터링.
 const defaultProducts = [
-  { id: 1, title: '에르메스', subtitle: '아리안 링', description: '에르메스 아리안 링, 라지 사이즈. 라운지 감정 완료, 보증서 포함.', price: 5_200_000, retail_price: 15_300_000, discount_rate: 66, images: JSON.stringify(['https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=60']), brand: '에르메스', brand_id: 10, category_main: '반지', category_medium: '패션반지', condition: '라지, 화이트골드, 풀 파베, 55', tags: '에르메스,반지,파베', badge: null, is_ready: true, status: 'AVAILABLE', views: 261, likes: 12, chat_count: 4 },
-  { id: 2, title: '반클리프 아펠', subtitle: '알함브라 10모티브 네크리스', description: '빈티지 알함브라 10모티브, 화이트골드, 칼세도니. 2023년 구매 제품입니다.', price: 14_000_000, retail_price: 18_900_000, discount_rate: 26, images: JSON.stringify(['https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=800&q=60']), brand: '반클리프 아펠', brand_id: 1, category_main: '목걸이/펜던트', category_medium: '진주/유색보석 목걸이', condition: '빈티지, 화이트골드, 칼세도니', tags: '반클리프,알함브라,칼세도니', badge: '실물영상', is_ready: true, has_certificate: true, year: '2023', status: 'AVAILABLE', views: 607, likes: 55, chat_count: 18 },
-  { id: 3, title: '반클리프 아펠', subtitle: '스위트 알함브라 브레이슬릿', description: '스위트 알함브라 모바일, 로즈골드 카날리안. 사용감 거의 없음.', price: 3_250_000, retail_price: 4_200_000, discount_rate: 22, images: JSON.stringify(['https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=800&q=60']), brand: '반클리프 아펠', brand_id: 1, category_main: '팔찌', category_medium: '금팔찌', condition: '로즈골드 · 카날리안', tags: '반클리프,스위트,팔찌', badge: null, is_ready: true, status: 'AVAILABLE', views: 322, likes: 28, chat_count: 7 },
-  { id: 4, title: '불가리', subtitle: '비 제로 원 링', description: 'B.zero1 링 3밴드. 핑크골드, 사이즈 51.', price: 2_900_000, retail_price: 3_800_000, discount_rate: 24, images: JSON.stringify(['https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=800&q=60']), brand: '불가리', brand_id: 3, category_main: '반지', category_medium: '금반지', condition: '핑크골드, 51사이즈', tags: '불가리,bzero1,핑크골드', badge: null, is_ready: false, status: 'AVAILABLE', views: 189, likes: 13, chat_count: 2 },
-  { id: 5, title: '까르띠에', subtitle: '러브 링', description: '러브 링 4 다이아, 옐로우골드. 박스/보증서 있음.', price: 4_100_000, retail_price: 5_300_000, discount_rate: 23, images: JSON.stringify(['https://images.unsplash.com/photo-1588444650700-6c5b7f0e3c73?auto=format&fit=crop&w=800&q=60']), brand: '까르띠에', brand_id: 2, category_main: '반지', category_medium: '다이아몬드 반지', condition: '옐로우골드, 4다이아, 51', tags: '까르띠에,러브,다이아', badge: null, is_ready: true, has_certificate: true, year: '2022', status: 'AVAILABLE', views: 412, likes: 33, chat_count: 9 },
-  { id: 6, title: '티파니', subtitle: 'T1 링 와이드', description: 'T1 와이드 링, 로즈골드, 풀파베 옵션.', price: 2_400_000, retail_price: 3_100_000, discount_rate: 23, images: JSON.stringify(['https://images.unsplash.com/photo-1596944924591-c4e8b6b1b78a?auto=format&fit=crop&w=800&q=60']), brand: '티파니', brand_id: 5, category_main: '반지', category_medium: '금반지', condition: '로즈골드, 풀 파베', tags: '티파니,t1,로즈골드', badge: null, is_ready: false, status: 'AVAILABLE', views: 233, likes: 19, chat_count: 3 },
-  { id: 7, title: '에르메스', subtitle: '클릭 아슈 브레이슬릿', description: '클릭 아슈 팔찌, 로즈골드 PM, 15cm.', price: 690_000, retail_price: 780_000, discount_rate: 12, images: JSON.stringify(['https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=800&q=60']), brand: '에르메스', brand_id: 10, category_main: '팔찌', category_medium: '패션 팔찌', condition: '로즈골드 · PM', tags: '에르메스,클릭아슈,팔찌', badge: null, is_ready: true, status: 'AVAILABLE', views: 141, likes: 8, chat_count: 1 },
-  { id: 8, title: '디올', subtitle: '로즈 드 방 이어링', description: '로즈 드 방 귀걸이, 옐로우골드, 다이아.', price: 2_150_000, retail_price: 2_900_000, discount_rate: 26, images: JSON.stringify(['https://images.unsplash.com/photo-1603974372039-adc49044b6bd?auto=format&fit=crop&w=800&q=60']), brand: '디올', brand_id: 11, category_main: '귀걸이/피어싱', category_medium: '다이아몬드 귀걸이', condition: '옐로우골드, 다이아', tags: '디올,이어링,다이아', badge: null, is_ready: false, status: 'AVAILABLE', views: 98, likes: 6, chat_count: 0 },
+  {
+    id: 1,
+    title: '14K 데일리 실반지',
+    subtitle: '옐로우골드 얇은 링 (11호)',
+    description: '14K 옐로우골드 1.5mm 얇은 밴드링. 데일리로 매일 끼기 좋은 무광 마감이에요. 사이즈 11호, 미착용 새 제품.',
+    price: 128_000,
+    retail_price: 168_000,
+    discount_rate: 23,
+    images: JSON.stringify(['https://images.unsplash.com/photo-1603974372039-adc49044b6bd?auto=format&fit=crop&w=800&q=60']),
+    brand: null, brand_id: null,
+    category_main: '반지', category_medium: '금반지',
+    material: 'gold-yellow',
+    condition: '옐로우골드 14K · 11호 · 1.5mm',
+    tags: '14K,데일리,실반지,옐로우골드',
+    badge: 'AI 감정', is_ready: true, status: 'AVAILABLE',
+    views: 162, likes: 18, chat_count: 3,
+  },
+  {
+    id: 2,
+    title: '실버 큐빅 스터드 귀걸이',
+    subtitle: '925 스털링 실버 · 4mm',
+    description: '스털링 실버 925 포스트. 4mm 큐빅, 알러지 없이 무난하게 착용 가능. 착용 2회 후 보관만 한 상태.',
+    price: 24_000,
+    retail_price: 38_000,
+    discount_rate: 37,
+    images: JSON.stringify(['https://images.unsplash.com/photo-1535632066927-ec20c7a5e989?auto=format&fit=crop&w=800&q=60']),
+    brand: null, brand_id: null,
+    category_main: '귀걸이/피어싱', category_medium: '은 귀걸이',
+    material: 'silver',
+    condition: '실버 925 · 사용감 없음',
+    tags: '실버,스터드,큐빅',
+    badge: 'AI 감정', is_ready: true, status: 'AVAILABLE',
+    views: 89, likes: 7, chat_count: 1,
+  },
+  {
+    id: 3,
+    title: '18K 트윈 체인 목걸이',
+    subtitle: '옐로우골드 · 45cm',
+    description: '18K 옐로우골드 더블 체인 네크리스. 45cm + 5cm 조절 가능. 사용감 거의 없음, 박스 포함.',
+    price: 620_000,
+    retail_price: 860_000,
+    discount_rate: 28,
+    images: JSON.stringify(['https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=800&q=60']),
+    brand: null, brand_id: null,
+    category_main: '목걸이/펜던트', category_medium: '금 목걸이',
+    material: 'gold-yellow',
+    condition: '18K 옐로우골드 · 45cm',
+    tags: '18K,체인,목걸이',
+    badge: 'AI 감정', is_ready: true, status: 'AVAILABLE',
+    views: 212, likes: 20, chat_count: 4,
+  },
+  {
+    id: 4,
+    title: '로즈골드 미니 하트 팔찌',
+    subtitle: '14K · 16cm',
+    description: '14K 로즈골드 하트 참 팔찌. 착용 사진 참고용, 상태 A급. 선물용 박스 포함.',
+    price: 95_000,
+    retail_price: 142_000,
+    discount_rate: 33,
+    images: JSON.stringify(['https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=800&q=60']),
+    brand: null, brand_id: null,
+    category_main: '팔찌', category_medium: '금팔찌',
+    material: 'gold-rose',
+    condition: '14K 로즈골드 · 사용감 적음',
+    tags: '14K,로즈골드,하트,팔찌',
+    badge: 'AI 감정', is_ready: true, status: 'AVAILABLE',
+    views: 134, likes: 14, chat_count: 2,
+  },
+  {
+    id: 5,
+    title: '담수진주 네크리스',
+    subtitle: '7~8mm A급 · 실버 마감',
+    description: '담수진주 A급 7~8mm. 실버 925 체인에 셋팅. 엄마 선물로 구매했다가 사이즈 교체로 판매. 박스 미개봉.',
+    price: 210_000,
+    retail_price: 285_000,
+    discount_rate: 26,
+    images: JSON.stringify(['https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=800&q=60']),
+    brand: null, brand_id: null,
+    category_main: '목걸이/펜던트', category_medium: '진주/유색보석 목걸이',
+    material: 'pearl',
+    condition: '담수진주 A급 · 새 상품',
+    tags: '진주,네크리스,선물',
+    badge: 'AI 감정', is_ready: true, status: 'AVAILABLE',
+    views: 176, likes: 22, chat_count: 5,
+  },
+  {
+    id: 6,
+    title: '14K 커플링 세트',
+    subtitle: '옐로우골드 · 10호·13호',
+    description: '결혼 예물로 맞췄던 14K 커플링. 내부 각인 없음. 10호·13호 페어. 예물 재테크 목적으로 판매합니다.',
+    price: 380_000,
+    retail_price: 520_000,
+    discount_rate: 26,
+    images: JSON.stringify(['https://images.unsplash.com/photo-1596944924591-c4e8b6b1b78a?auto=format&fit=crop&w=800&q=60']),
+    brand: null, brand_id: null,
+    category_main: '반지', category_medium: '금반지',
+    material: 'gold-yellow',
+    condition: '14K 옐로우골드 · 사용감 적음',
+    tags: '커플링,예물,14K',
+    badge: 'AI 감정', is_ready: true, status: 'AVAILABLE',
+    views: 298, likes: 41, chat_count: 12,
+  },
+  {
+    id: 7,
+    title: '다이아 0.3ct 솔리테어 목걸이',
+    subtitle: '화이트골드 · G·VS1 감정서',
+    description: '18K 화이트골드 0.3ct 솔리테어 다이아 네크리스. 감정서 포함(G·VS1). 착용 3회, 상태 상급. AI 감정가 공유 가능.',
+    price: 1_180_000,
+    retail_price: 1_640_000,
+    discount_rate: 28,
+    images: JSON.stringify(['https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=800&q=60']),
+    brand: null, brand_id: null,
+    category_main: '목걸이/펜던트', category_medium: '다이아몬드 목걸이',
+    material: 'diamond',
+    condition: '18K 화이트골드 · 0.3ct · G·VS1',
+    tags: '다이아,솔리테어,감정서',
+    badge: 'AI 감정', is_ready: true, has_certificate: true, status: 'AVAILABLE',
+    views: 412, likes: 55, chat_count: 18,
+  },
+  {
+    id: 8,
+    title: '유색보석 드롭 귀걸이',
+    subtitle: '가넷 · 실버 포스트',
+    description: '내추럴 가넷 드롭 귀걸이. 실버 925 포스트. 가을·겨울 룩 포인트로 좋아요. 사용 거의 없음.',
+    price: 68_000,
+    retail_price: 108_000,
+    discount_rate: 37,
+    images: JSON.stringify(['https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=60']),
+    brand: null, brand_id: null,
+    category_main: '귀걸이/피어싱', category_medium: '진주/유색보석 귀걸이',
+    material: 'gem',
+    condition: '실버 925 · 가넷 · 사용감 없음',
+    tags: '가넷,유색보석,드롭,실버',
+    badge: 'AI 감정', is_ready: true, status: 'AVAILABLE',
+    views: 77, likes: 9, chat_count: 0,
+  },
 ];
 
 const nowIso = () => new Date().toISOString();
@@ -363,6 +498,7 @@ function buildProductResponse(product) {
     category_main: product.category_main || null,
     category_medium: product.category_medium || null,
     category_small: product.category_small || null,
+    material: product.material || null,
     condition: product.condition || null,
     tags: product.tags || null,
     badge: product.badge || null,
@@ -443,22 +579,19 @@ async function ensureCategories() {
 }
 
 async function ensureBrands() {
+  // General-jewelry concept: brands collection is wiped. Keeping the helper so
+  // the seed version bump will clean up any previously seeded luxury brands on
+  // first deploy.
   return withStore(
     async () => {
       const version = await getSeedVersion('brands');
       if (version !== SEED_VERSIONS.brands) {
         await wipeCollection('brands');
-        const batch = firestore.batch();
-        defaultBrands.forEach((b) =>
-          batch.set(firestore.collection('brands').doc(String(b.id)), b),
-        );
-        await batch.commit();
         await setSeedVersion('brands', SEED_VERSIONS.brands);
       }
-      const result = await firestore.collection('brands').orderBy('id').get();
-      return result.docs.map((d) => d.data());
+      return [];
     },
-    async () => JSON.parse(JSON.stringify(defaultBrands)),
+    async () => [],
   );
 }
 
@@ -609,6 +742,9 @@ async function listProducts(filter = {}) {
 
   if (filter.category) items = items.filter((p) => p.category_main === filter.category);
   if (filter.brand_id) items = items.filter((p) => String(p.brand_id) === String(filter.brand_id));
+  if (filter.material) items = items.filter((p) => p.material === filter.material);
+  if (filter.min_price != null) items = items.filter((p) => Number(p.price) >= Number(filter.min_price));
+  if (filter.max_price != null) items = items.filter((p) => Number(p.price) <= Number(filter.max_price));
   if (filter.keyword) {
     const kw = filter.keyword.toLowerCase();
     items = items.filter((p) => {
@@ -813,7 +949,11 @@ function createApp({ staticDir }) {
       res.json({
         banners: memoryStore.banners,
         quick_actions: memoryStore.quickActions,
-        marquee: ['JEWELIVE, For All Brilliants', 'Pre-Owned Luxury Jewelry', '실거래 데이터 기반 투명 감정'],
+        marquee: [
+          'Jewelive, 내 주얼리의 진짜 가치',
+          'AI 감정가 · 매주 업데이트되는 금·은 시세',
+          '투명한 실거래 데이터, 합리적인 거래',
+        ],
         new_arrivals: products,
         categories: [{ id: 0, name: '전체', parent_id: null, children: [] }, ...categories],
       });
@@ -832,38 +972,29 @@ function createApp({ staticDir }) {
   });
 
   app.get('/api/brands', async (_req, res) => {
-    try {
-      res.json(await ensureBrands());
-    } catch (_e) {
-      res.status(500).json({ detail: 'Failed to fetch brands' });
-    }
+    // Brands intentionally empty in general-jewelry concept; endpoint kept for
+    // backwards compatibility with older clients.
+    res.json([]);
   });
 
-  app.get('/api/brands/:id', async (req, res) => {
-    try {
-      const brands = await ensureBrands();
-      const brand = brands.find((b) => String(b.id) === req.params.id);
-      if (!brand) {
-        res.status(404).json({ detail: '브랜드를 찾을 수 없습니다.' });
-        return;
-      }
-      const products = await listProducts({ brand_id: brand.id });
-      res.json({ brand, products });
-    } catch (_e) {
-      res.status(500).json({ detail: 'Failed to fetch brand detail' });
-    }
+  app.get('/api/materials', (_req, res) => {
+    res.json({ materials: defaultMaterials, price_bands: defaultPriceBands });
   });
 
   app.get('/api/explore', async (_req, res) => {
     try {
       const categories = await ensureCategories();
-      const brands = await ensureBrands();
       const products = await listProducts();
-      const sections = brands.slice(0, 6).map((brand) => ({
-        brand,
-        products: products.filter((p) => p.brand_id === brand.id).slice(0, 6),
-      }));
-      res.json({ categories, brands, sections });
+      const sections = defaultMaterials.map((material) => ({
+        material,
+        products: products.filter((p) => p.material === material.id).slice(0, 6),
+      })).filter((s) => s.products.length > 0);
+      res.json({
+        categories,
+        materials: defaultMaterials,
+        price_bands: defaultPriceBands,
+        sections,
+      });
     } catch (_e) {
       res.status(500).json({ detail: 'Failed to fetch explore' });
     }
@@ -874,6 +1005,9 @@ function createApp({ staticDir }) {
       const filter = {
         category: req.query.category || null,
         brand_id: req.query.brand_id || null,
+        material: req.query.material || null,
+        min_price: req.query.min_price != null ? Number(req.query.min_price) : null,
+        max_price: req.query.max_price != null ? Number(req.query.max_price) : null,
         keyword: req.query.q || null,
         limit: req.query.limit ? Number(req.query.limit) : null,
       };

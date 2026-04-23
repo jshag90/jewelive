@@ -66,7 +66,11 @@ export default function ProductCard({ product }: Props) {
             <span className="jl-product-card__discount">정가대비 {product.discount_rate}%↓</span>
           ) : null}
         </div>
-        {product.is_ready ? <div className="jl-product-card__ready">JEWELIVE Ready</div> : null}
+        {product.is_ready ? (
+          <div className="jl-product-card__ready">
+            <span aria-hidden>✨</span> AI 감정 완료
+          </div>
+        ) : null}
         <span className="jl-product-card__views">
           <Eye size={12} /> {product.views}
         </span>

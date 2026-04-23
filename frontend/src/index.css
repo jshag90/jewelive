@@ -375,6 +375,18 @@ img {
   border-color: var(--jl-ink);
 }
 
+.jl-quick__pill--accent {
+  background: var(--jl-primary);
+  color: #fff;
+  border-color: var(--jl-primary);
+  box-shadow: 0 6px 18px rgba(232, 93, 60, 0.28);
+}
+
+.jl-quick__pill--accent .jl-quick__pill-icon {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
 .jl-quick__pill-icon {
   width: 26px;
   height: 26px;
@@ -1959,4 +1971,106 @@ img {
   font-size: 13px;
   color: var(--jl-muted);
   letter-spacing: -0.01em;
+}
+
+/* Explore - material/price filter groups */
+.jl-filter-group {
+  padding: 12px 16px 4px;
+}
+
+.jl-filter-group__label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--jl-muted);
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+
+.jl-chip-group--scroll {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+
+.jl-chip-group--scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.jl-chip-option--material {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 8px;
+}
+
+.jl-chip-option__swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.jl-material-block {
+  padding: 14px 0 8px;
+}
+
+.jl-material-block__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px 10px;
+}
+
+.jl-material-block__swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.jl-material-block__name {
+  display: flex;
+  flex-direction: column;
+}
+
+.jl-material-block__title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--jl-ink);
+  letter-spacing: -0.01em;
+}
+
+.jl-material-block__sub {
+  font-size: 11px;
+  color: var(--jl-muted);
+  margin-top: 2px;
+}
+
+/* Upload AI hint */
+.jl-upload-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff3ee;
+  color: var(--jl-primary);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: var(--jl-radius-full);
+  margin-bottom: 10px;
+}
+
+/* Product card — AI 감정 완료 badge */
+.jl-product-card__ready {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--jl-primary);
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }

@@ -132,7 +132,11 @@ export default function ProductDetailPage() {
             <span className="jl-detail-price__discount">정가대비 {product.discount_rate}%↓</span>
           ) : null}
         </div>
-        {product.is_ready ? <div className="jl-product-card__ready">JEWELIVE Ready</div> : null}
+        {product.is_ready ? (
+          <div className="jl-product-card__ready">
+            <span aria-hidden>✨</span> AI 감정 완료
+          </div>
+        ) : null}
 
         <div className="jl-detail-stats">
           <span>
