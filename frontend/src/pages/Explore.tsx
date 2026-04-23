@@ -8,7 +8,6 @@ import type { Brand, Category, ExplorePayload, ExploreSection } from '../types/p
 
 export default function ExplorePage() {
   const [data, setData] = useState<ExplorePayload | null>(null);
-  const [activeCategoryId, setActiveCategoryId] = useState<number>(0);
   const [activeBrandId, setActiveBrandId] = useState<number | null>(null);
   const [keyword, setKeyword] = useState('');
   const navigate = useNavigate();
@@ -49,29 +48,22 @@ export default function ExplorePage() {
         />
       </div>
 
-      <div className="jl-circle-row">
-        <button
-          type="button"
-          className={`jl-circle ${activeCategoryId === 0 ? 'jl-circle--active' : ''}`}
-          onClick={() => setActiveCategoryId(0)}
-        >
-          <span className="jl-circle__icon">ALL</span>
-          <span>전체 상품</span>
-        </button>
+      <section className="jl-explore-circle-section">
+        <Link to="/categories" className="jl-circle jl-circle--all">
+          <span className="jl-circle__icon jl-circle__icon--all">ALL</span>
+          <span className="jl-circle__label">전체 상품</span>
+        </Link>
         {(data?.categories || []).map((c: Category) => (
-          <button
+          <Link
             key={c.id}
-            type="button"
-            className={`jl-circle ${activeCategoryId === c.id ? 'jl-circle--active' : ''}`}
-            onClick={() => setActiveCategoryId(c.id)}
+            to={`/categories/${c.id}`}
+            className="jl-circle"
           >
-            <span className="jl-circle__icon" style={{ fontSize: 28 }}>
-              {c.emoji || c.name[0]}
-            </span>
-            <span>{c.name}</span>
-          </button>
+            <span className="jl-circle__icon">{c.emoji || c.name.slice(0, 1)}</span>
+            <span className="jl-circle__label">{c.short_name || c.name}</span>
+          </Link>
         ))}
-      </div>
+      </section>
 
       <div className="jl-explore-shell">
         <aside className="jl-explore-side">
@@ -98,12 +90,14 @@ export default function ExplorePage() {
             sections.map(({ brand, products }) => (
               <section key={brand.id} id={`brand-${brand.id}`} className="jl-brand-block">
                 <div className="jl-brand-block__head">
-                  <div className="jl-brand-block__logo">{brand.logo?.slice(0, 4) || brand.name[0]}</div>
+                  <div className="jl-brand-block__logo">
+                    {brand.logo?.slice(0, 4) || brand.name[0]}
+                  </div>
                   <div className="jl-brand-block__name">
                     <span className="jl-brand-block__latin">{brand.latin}</span>
                     <span className="jl-brand-block__title">{brand.name}</span>
                   </div>
-                  <Link to={`/brand/${brand.id}`} className="jl-brand-block__more">
+                  <Link to={`/brand/${brand.id}`} className="jl-brand-block__more" aria-label="more">
                     <ChevronRight size={18} />
                   </Link>
                 </div>

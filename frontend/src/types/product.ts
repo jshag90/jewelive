@@ -42,6 +42,7 @@ export interface Product {
 export interface Category {
   id: number;
   name: string;
+  short_name?: string | null;
   parent_id: number | null;
   emoji?: string | null;
   children: Category[];

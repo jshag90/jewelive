@@ -15,64 +15,94 @@ const upload = multer({
 const defaultCategories = [
   {
     id: 1,
-    name: '링',
-    emoji: '💍',
+    name: '귀걸이/피어싱',
+    short_name: '귀걸이',
+    emoji: '✨',
     parent_id: null,
     children: [
-      { id: 101, name: '다이아 링', parent_id: 1, children: [] },
-      { id: 102, name: '커플 링', parent_id: 1, children: [] },
-      { id: 103, name: '패션 링', parent_id: 1, children: [] },
+      { id: 101, name: '다이아몬드 귀걸이', parent_id: 1, children: [] },
+      { id: 102, name: '금 귀걸이', parent_id: 1, children: [] },
+      { id: 103, name: '은 귀걸이', parent_id: 1, children: [] },
+      { id: 104, name: '진주/유색보석 귀걸이', parent_id: 1, children: [] },
+      { id: 105, name: '패션 귀걸이', parent_id: 1, children: [] },
+      { id: 106, name: '피어싱', parent_id: 1, children: [] },
+      { id: 107, name: '귀찌/이어커프', parent_id: 1, children: [] },
     ],
   },
   {
     id: 2,
-    name: '네크리스',
+    name: '목걸이/펜던트',
+    short_name: '목걸이',
     emoji: '📿',
     parent_id: null,
     children: [
-      { id: 201, name: '목걸이', parent_id: 2, children: [] },
-      { id: 202, name: '펜던트', parent_id: 2, children: [] },
-      { id: 203, name: '진주 네크리스', parent_id: 2, children: [] },
+      { id: 201, name: '다이아몬드 목걸이', parent_id: 2, children: [] },
+      { id: 202, name: '금 목걸이', parent_id: 2, children: [] },
+      { id: 203, name: '은 목걸이', parent_id: 2, children: [] },
+      { id: 204, name: '진주/유색보석 목걸이', parent_id: 2, children: [] },
+      { id: 205, name: '패션 목걸이', parent_id: 2, children: [] },
+      { id: 206, name: '초커', parent_id: 2, children: [] },
     ],
   },
   {
     id: 3,
-    name: '브레이슬릿',
+    name: '팔찌',
+    short_name: '팔찌',
     emoji: '🔗',
     parent_id: null,
     children: [
-      { id: 301, name: '체인 팔찌', parent_id: 3, children: [] },
-      { id: 302, name: '뱅글', parent_id: 3, children: [] },
+      { id: 301, name: '금팔찌', parent_id: 3, children: [] },
+      { id: 302, name: '은팔찌', parent_id: 3, children: [] },
+      { id: 303, name: '패션 팔찌', parent_id: 3, children: [] },
     ],
   },
   {
     id: 4,
-    name: '이어링',
-    emoji: '✨',
+    name: '발찌',
+    short_name: '발찌',
+    emoji: '👣',
     parent_id: null,
     children: [
-      { id: 401, name: '스터드 귀걸이', parent_id: 4, children: [] },
-      { id: 402, name: '드롭 귀걸이', parent_id: 4, children: [] },
+      { id: 401, name: '금 발찌', parent_id: 4, children: [] },
+      { id: 402, name: '은 발찌', parent_id: 4, children: [] },
+      { id: 403, name: '패션 발찌', parent_id: 4, children: [] },
     ],
   },
   {
     id: 5,
-    name: '워치',
-    emoji: '⌚',
+    name: '반지',
+    short_name: '반지',
+    emoji: '💍',
     parent_id: null,
     children: [
-      { id: 501, name: '여성 시계', parent_id: 5, children: [] },
-      { id: 502, name: '남성 시계', parent_id: 5, children: [] },
+      { id: 501, name: '다이아몬드 반지', parent_id: 5, children: [] },
+      { id: 502, name: '금반지', parent_id: 5, children: [] },
+      { id: 503, name: '은반지', parent_id: 5, children: [] },
+      { id: 504, name: '진주/유색보석 반지', parent_id: 5, children: [] },
+      { id: 505, name: '패션반지', parent_id: 5, children: [] },
     ],
   },
   {
     id: 6,
-    name: '패션 주얼리',
+    name: '쥬얼리 세트',
+    short_name: '세트',
     emoji: '💎',
     parent_id: null,
     children: [
-      { id: 601, name: '브로치', parent_id: 6, children: [] },
-      { id: 602, name: '참/팬던트', parent_id: 6, children: [] },
+      { id: 601, name: '귀금속 쥬얼리 세트', parent_id: 6, children: [] },
+      { id: 602, name: '패션 쥬얼리 세트', parent_id: 6, children: [] },
+    ],
+  },
+  {
+    id: 7,
+    name: '기타 쥬얼리',
+    short_name: '기타',
+    emoji: '🧿',
+    parent_id: null,
+    children: [
+      { id: 701, name: '브로치', parent_id: 7, children: [] },
+      { id: 702, name: '참/참팔찌', parent_id: 7, children: [] },
+      { id: 703, name: '기타', parent_id: 7, children: [] },
     ],
   },
 ];
@@ -140,15 +170,23 @@ const defaultQuickActions = [
 
 const SYSTEM_SELLER_ID = 'jewelive-system';
 
+// Bump these whenever the seed structure changes so already-seeded Firestore
+// data is replaced on the next deploy.
+const SEED_VERSIONS = {
+  categories: 2,
+  brands: 1,
+  products: 2,
+};
+
 const defaultProducts = [
-  { id: 1, title: '에르메스', subtitle: '아리안 링', description: '에르메스 아리안 링, 라지 사이즈. 라운지 감정 완료, 보증서 포함.', price: 5_200_000, retail_price: 15_300_000, discount_rate: 66, images: JSON.stringify(['https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=60']), brand: '에르메스', brand_id: 10, category_main: '링', category_medium: '패션 링', condition: '라지, 화이트골드, 풀 파베, 55', tags: '에르메스,링,파베', badge: null, is_ready: true, status: 'AVAILABLE', views: 261, likes: 12, chat_count: 4 },
-  { id: 2, title: '반클리프 아펠', subtitle: '알함브라 10모티브 네크리스', description: '빈티지 알함브라 10모티브, 화이트골드, 칼세도니. 2023년 구매 제품입니다.', price: 14_000_000, retail_price: 18_900_000, discount_rate: 26, images: JSON.stringify(['https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=800&q=60']), brand: '반클리프 아펠', brand_id: 1, category_main: '네크리스', category_medium: '목걸이', condition: '빈티지, 화이트골드, 칼세도니', tags: '반클리프,알함브라,칼세도니', badge: '실물영상', is_ready: true, has_certificate: true, year: '2023', status: 'AVAILABLE', views: 607, likes: 55, chat_count: 18 },
-  { id: 3, title: '반클리프 아펠', subtitle: '스위트 알함브라 브레이슬릿', description: '스위트 알함브라 모바일, 로즈골드 카날리안. 사용감 거의 없음.', price: 3_250_000, retail_price: 4_200_000, discount_rate: 22, images: JSON.stringify(['https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=800&q=60']), brand: '반클리프 아펠', brand_id: 1, category_main: '브레이슬릿', category_medium: '체인 팔찌', condition: '로즈골드 · 카날리안', tags: '반클리프,스위트,팔찌', badge: null, is_ready: true, status: 'AVAILABLE', views: 322, likes: 28, chat_count: 7 },
-  { id: 4, title: '불가리', subtitle: '비 제로 원 링', description: 'B.zero1 링 3밴드. 핑크골드, 사이즈 51.', price: 2_900_000, retail_price: 3_800_000, discount_rate: 24, images: JSON.stringify(['https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=800&q=60']), brand: '불가리', brand_id: 3, category_main: '링', category_medium: '패션 링', condition: '핑크골드, 51사이즈', tags: '불가리,bzero1,핑크골드', badge: null, is_ready: false, status: 'AVAILABLE', views: 189, likes: 13, chat_count: 2 },
-  { id: 5, title: '까르띠에', subtitle: '러브 링', description: '러브 링 4 다이아, 옐로우골드. 박스/보증서 있음.', price: 4_100_000, retail_price: 5_300_000, discount_rate: 23, images: JSON.stringify(['https://images.unsplash.com/photo-1588444650700-6c5b7f0e3c73?auto=format&fit=crop&w=800&q=60']), brand: '까르띠에', brand_id: 2, category_main: '링', category_medium: '패션 링', condition: '옐로우골드, 4다이아, 51', tags: '까르띠에,러브,다이아', badge: null, is_ready: true, has_certificate: true, year: '2022', status: 'AVAILABLE', views: 412, likes: 33, chat_count: 9 },
-  { id: 6, title: '티파니', subtitle: 'T1 링 와이드', description: 'T1 와이드 링, 로즈골드, 풀파베 옵션.', price: 2_400_000, retail_price: 3_100_000, discount_rate: 23, images: JSON.stringify(['https://images.unsplash.com/photo-1596944924591-c4e8b6b1b78a?auto=format&fit=crop&w=800&q=60']), brand: '티파니', brand_id: 5, category_main: '링', category_medium: '패션 링', condition: '로즈골드, 풀 파베', tags: '티파니,t1,로즈골드', badge: null, is_ready: false, status: 'AVAILABLE', views: 233, likes: 19, chat_count: 3 },
-  { id: 7, title: '에르메스', subtitle: '클릭 아슈 브레이슬릿', description: '클릭 아슈 팔찌, 로즈골드 PM, 15cm.', price: 690_000, retail_price: 780_000, discount_rate: 12, images: JSON.stringify(['https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=800&q=60']), brand: '에르메스', brand_id: 10, category_main: '브레이슬릿', category_medium: '뱅글', condition: '로즈골드 · PM', tags: '에르메스,클릭아슈,팔찌', badge: null, is_ready: true, status: 'AVAILABLE', views: 141, likes: 8, chat_count: 1 },
-  { id: 8, title: '디올', subtitle: '로즈 드 방 이어링', description: '로즈 드 방 귀걸이, 옐로우골드, 다이아.', price: 2_150_000, retail_price: 2_900_000, discount_rate: 26, images: JSON.stringify(['https://images.unsplash.com/photo-1603974372039-adc49044b6bd?auto=format&fit=crop&w=800&q=60']), brand: '디올', brand_id: 11, category_main: '이어링', category_medium: '드롭 귀걸이', condition: '옐로우골드, 다이아', tags: '디올,이어링,다이아', badge: null, is_ready: false, status: 'AVAILABLE', views: 98, likes: 6, chat_count: 0 },
+  { id: 1, title: '에르메스', subtitle: '아리안 링', description: '에르메스 아리안 링, 라지 사이즈. 라운지 감정 완료, 보증서 포함.', price: 5_200_000, retail_price: 15_300_000, discount_rate: 66, images: JSON.stringify(['https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=60']), brand: '에르메스', brand_id: 10, category_main: '반지', category_medium: '패션반지', condition: '라지, 화이트골드, 풀 파베, 55', tags: '에르메스,반지,파베', badge: null, is_ready: true, status: 'AVAILABLE', views: 261, likes: 12, chat_count: 4 },
+  { id: 2, title: '반클리프 아펠', subtitle: '알함브라 10모티브 네크리스', description: '빈티지 알함브라 10모티브, 화이트골드, 칼세도니. 2023년 구매 제품입니다.', price: 14_000_000, retail_price: 18_900_000, discount_rate: 26, images: JSON.stringify(['https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=800&q=60']), brand: '반클리프 아펠', brand_id: 1, category_main: '목걸이/펜던트', category_medium: '진주/유색보석 목걸이', condition: '빈티지, 화이트골드, 칼세도니', tags: '반클리프,알함브라,칼세도니', badge: '실물영상', is_ready: true, has_certificate: true, year: '2023', status: 'AVAILABLE', views: 607, likes: 55, chat_count: 18 },
+  { id: 3, title: '반클리프 아펠', subtitle: '스위트 알함브라 브레이슬릿', description: '스위트 알함브라 모바일, 로즈골드 카날리안. 사용감 거의 없음.', price: 3_250_000, retail_price: 4_200_000, discount_rate: 22, images: JSON.stringify(['https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=800&q=60']), brand: '반클리프 아펠', brand_id: 1, category_main: '팔찌', category_medium: '금팔찌', condition: '로즈골드 · 카날리안', tags: '반클리프,스위트,팔찌', badge: null, is_ready: true, status: 'AVAILABLE', views: 322, likes: 28, chat_count: 7 },
+  { id: 4, title: '불가리', subtitle: '비 제로 원 링', description: 'B.zero1 링 3밴드. 핑크골드, 사이즈 51.', price: 2_900_000, retail_price: 3_800_000, discount_rate: 24, images: JSON.stringify(['https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=800&q=60']), brand: '불가리', brand_id: 3, category_main: '반지', category_medium: '금반지', condition: '핑크골드, 51사이즈', tags: '불가리,bzero1,핑크골드', badge: null, is_ready: false, status: 'AVAILABLE', views: 189, likes: 13, chat_count: 2 },
+  { id: 5, title: '까르띠에', subtitle: '러브 링', description: '러브 링 4 다이아, 옐로우골드. 박스/보증서 있음.', price: 4_100_000, retail_price: 5_300_000, discount_rate: 23, images: JSON.stringify(['https://images.unsplash.com/photo-1588444650700-6c5b7f0e3c73?auto=format&fit=crop&w=800&q=60']), brand: '까르띠에', brand_id: 2, category_main: '반지', category_medium: '다이아몬드 반지', condition: '옐로우골드, 4다이아, 51', tags: '까르띠에,러브,다이아', badge: null, is_ready: true, has_certificate: true, year: '2022', status: 'AVAILABLE', views: 412, likes: 33, chat_count: 9 },
+  { id: 6, title: '티파니', subtitle: 'T1 링 와이드', description: 'T1 와이드 링, 로즈골드, 풀파베 옵션.', price: 2_400_000, retail_price: 3_100_000, discount_rate: 23, images: JSON.stringify(['https://images.unsplash.com/photo-1596944924591-c4e8b6b1b78a?auto=format&fit=crop&w=800&q=60']), brand: '티파니', brand_id: 5, category_main: '반지', category_medium: '금반지', condition: '로즈골드, 풀 파베', tags: '티파니,t1,로즈골드', badge: null, is_ready: false, status: 'AVAILABLE', views: 233, likes: 19, chat_count: 3 },
+  { id: 7, title: '에르메스', subtitle: '클릭 아슈 브레이슬릿', description: '클릭 아슈 팔찌, 로즈골드 PM, 15cm.', price: 690_000, retail_price: 780_000, discount_rate: 12, images: JSON.stringify(['https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=800&q=60']), brand: '에르메스', brand_id: 10, category_main: '팔찌', category_medium: '패션 팔찌', condition: '로즈골드 · PM', tags: '에르메스,클릭아슈,팔찌', badge: null, is_ready: true, status: 'AVAILABLE', views: 141, likes: 8, chat_count: 1 },
+  { id: 8, title: '디올', subtitle: '로즈 드 방 이어링', description: '로즈 드 방 귀걸이, 옐로우골드, 다이아.', price: 2_150_000, retail_price: 2_900_000, discount_rate: 26, images: JSON.stringify(['https://images.unsplash.com/photo-1603974372039-adc49044b6bd?auto=format&fit=crop&w=800&q=60']), brand: '디올', brand_id: 11, category_main: '귀걸이/피어싱', category_medium: '다이아몬드 귀걸이', condition: '옐로우골드, 다이아', tags: '디올,이어링,다이아', badge: null, is_ready: false, status: 'AVAILABLE', views: 98, likes: 6, chat_count: 0 },
 ];
 
 const nowIso = () => new Date().toISOString();
@@ -339,11 +377,36 @@ function buildProductResponse(product) {
   };
 }
 
+async function getSeedVersion(name) {
+  try {
+    const snap = await firestore.collection('_meta').doc('seed_versions').get();
+    return snap.exists ? Number(snap.data()?.[name] || 0) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+async function setSeedVersion(name, value) {
+  await firestore
+    .collection('_meta')
+    .doc('seed_versions')
+    .set({ [name]: value }, { merge: true });
+}
+
+async function wipeCollection(col) {
+  const snap = await firestore.collection(col).get();
+  if (snap.empty) return;
+  const batch = firestore.batch();
+  snap.docs.forEach((d) => batch.delete(d.ref));
+  await batch.commit();
+}
+
 async function ensureCategories() {
   return withStore(
     async () => {
-      const snapshot = await firestore.collection('categories').get();
-      if (snapshot.empty) {
+      const version = await getSeedVersion('categories');
+      if (version !== SEED_VERSIONS.categories) {
+        await wipeCollection('categories');
         const batch = firestore.batch();
         defaultCategories
           .flatMap((c) => [c, ...c.children])
@@ -351,11 +414,13 @@ async function ensureCategories() {
             batch.set(firestore.collection('categories').doc(String(c.id)), {
               id: c.id,
               name: c.name,
+              short_name: c.short_name || null,
               emoji: c.emoji || null,
               parent_id: c.parent_id,
             });
           });
         await batch.commit();
+        await setSeedVersion('categories', SEED_VERSIONS.categories);
       }
       const seeded = await firestore.collection('categories').orderBy('id').get();
       const map = new Map();
@@ -380,16 +445,52 @@ async function ensureCategories() {
 async function ensureBrands() {
   return withStore(
     async () => {
-      const snap = await firestore.collection('brands').get();
-      if (snap.empty) {
+      const version = await getSeedVersion('brands');
+      if (version !== SEED_VERSIONS.brands) {
+        await wipeCollection('brands');
         const batch = firestore.batch();
-        defaultBrands.forEach((b) => batch.set(firestore.collection('brands').doc(String(b.id)), b));
+        defaultBrands.forEach((b) =>
+          batch.set(firestore.collection('brands').doc(String(b.id)), b),
+        );
         await batch.commit();
+        await setSeedVersion('brands', SEED_VERSIONS.brands);
       }
       const result = await firestore.collection('brands').orderBy('id').get();
       return result.docs.map((d) => d.data());
     },
     async () => JSON.parse(JSON.stringify(defaultBrands)),
+  );
+}
+
+async function ensureSeedProducts() {
+  return withStore(
+    async () => {
+      const version = await getSeedVersion('products');
+      if (version === SEED_VERSIONS.products) return;
+      // Remove only system-curated seed products so user-created listings stay.
+      const snap = await firestore
+        .collection('products')
+        .where('seller_id', '==', SYSTEM_SELLER_ID)
+        .get();
+      const batch = firestore.batch();
+      snap.docs.forEach((d) => batch.delete(d.ref));
+      defaultProducts.forEach((seed) => {
+        const product = cloneSeedProduct(seed);
+        batch.set(firestore.collection('products').doc(String(product.id)), product);
+      });
+      // Update counter so next user-created product id stays ahead
+      const maxId = defaultProducts.reduce((acc, p) => (p.id > acc ? p.id : acc), 0);
+      batch.set(
+        firestore.collection('_meta').doc('counters'),
+        { product: maxId },
+        { merge: true },
+      );
+      await batch.commit();
+      await setSeedVersion('products', SEED_VERSIONS.products);
+    },
+    async () => {
+      // Memory store is re-seeded on each boot via bootstrapMemory(), no-op here.
+    },
   );
 }
 
@@ -494,6 +595,7 @@ function optionalAuth(req, res, next) {
 
 async function listProducts(filter = {}) {
   bootstrapMemory();
+  await ensureSeedProducts();
   const fromStore = await withStore(
     async () => {
       const snap = await firestore.collection('products').get();
@@ -530,6 +632,7 @@ async function listProducts(filter = {}) {
 
 async function getProductById(productId) {
   bootstrapMemory();
+  await ensureSeedProducts();
   return withStore(
     async () => {
       const ref = firestore.collection('products').doc(String(productId));

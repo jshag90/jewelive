@@ -1,12 +1,24 @@
-import { useEffect, useState } from 'react';
-import { ChevronLeft, Camera, X, Sparkles } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Camera, ChevronLeft, ChevronRight, Sparkles, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import AppShell from '../components/AppShell';
 import Toast from '../components/Toast';
+import BottomSheet from '../components/BottomSheet';
 import type { Brand, Category } from '../types/product';
 
-const CONDITIONS = ['새 상품 (미사용)', '사용감 없음', '사용감 적음', '사용감 많음', '기타'];
+interface ConditionOption {
+  label: string;
+  desc: string;
+}
+
+const CONDITIONS: ConditionOption[] = [
+  { label: '새 상품 (미사용)', desc: '사용하지 않은 새 상품' },
+  { label: '사용감 없음', desc: '사용은 했지만 눈에 띄는 흔적이나 얼룩이 없음' },
+  { label: '사용감 적음', desc: '눈에 띄는 흔적이나 얼룩이 약간 있음' },
+  { label: '사용감 많음', desc: '눈에 띄는 흔적이나 얼룩이 많이 있음' },
+  { label: '고장/파손 상품', desc: '기능 이상이나 외관 손상 등으로 수리/수선 필요' },
+];
 
 export default function ProductUploadPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -20,10 +32,18 @@ export default function ProductUploadPage() {
   const [condition, setCondition] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [brandId, setBrandId] = useState<number | null>(null);
-  const [category, setCategory] = useState<Category | null>(null);
+  const [mainCat, setMainCat] = useState<Category | null>(null);
+  const [subCat, setSubCat] = useState<Category | null>(null);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  // sheets
+  const [categorySheet, setCategorySheet] = useState(false);
+  const [conditionSheet, setConditionSheet] = useState(false);
+  const [brandSheet, setBrandSheet] = useState(false);
+  const [pendingMain, setPendingMain] = useState<Category | null>(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,6 +60,17 @@ export default function ProductUploadPage() {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    if (categorySheet) {
+      setPendingMain(mainCat);
+    }
+  }, [categorySheet, mainCat]);
+
+  const selectedBrand = useMemo(
+    () => brands.find((b) => b.id === brandId) || null,
+    [brands, brandId],
+  );
 
   async function handleImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -64,13 +95,12 @@ export default function ProductUploadPage() {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!title || !category || !condition) {
+  async function handleSubmit(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    if (!title || !mainCat || !condition) {
       setToast('필수 항목을 입력해 주세요.');
       return;
     }
-    const selectedBrand = brands.find((b) => b.id === brandId) || null;
     const payload = {
       title: selectedBrand?.name || title,
       subtitle: subtitle || title,
@@ -79,7 +109,8 @@ export default function ProductUploadPage() {
       retail_price: retailPrice ? Number(retailPrice) : null,
       brand: selectedBrand?.name || null,
       brand_id: selectedBrand?.id || null,
-      category_main: category.name,
+      category_main: mainCat.name,
+      category_medium: subCat?.name || null,
       condition,
       images: JSON.stringify(images),
       is_ready: false,
@@ -98,7 +129,12 @@ export default function ProductUploadPage() {
   return (
     <AppShell hideBottomNav>
       <header className="jl-auth-head">
-        <button type="button" onClick={() => navigate(-1)} style={{ background: 'transparent', border: 'none' }}>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          style={{ background: 'transparent', border: 'none' }}
+          aria-label="back"
+        >
           <ChevronLeft size={22} />
         </button>
         <div className="jl-auth-head__title">판매하기</div>
@@ -132,41 +168,39 @@ export default function ProductUploadPage() {
           </div>
         </div>
 
-        <div className="jl-upload-row">
+        <button
+          type="button"
+          className="jl-upload-row jl-upload-picker"
+          onClick={() => setBrandSheet(true)}
+        >
           <div className="jl-upload-row__label">
             브랜드 <span>*</span>
           </div>
-          <div className="jl-chip-group">
-            {brands.map((b) => (
-              <button
-                key={b.id}
-                type="button"
-                className={`jl-chip-option ${brandId === b.id ? 'is-active' : ''}`}
-                onClick={() => setBrandId(b.id)}
-              >
-                {b.name}
-              </button>
-            ))}
+          <div className="jl-upload-picker__value">
+            <span className={selectedBrand ? '' : 'jl-upload-picker__placeholder'}>
+              {selectedBrand ? selectedBrand.name : '브랜드를 선택해 주세요'}
+            </span>
+            <ChevronRight size={18} color="var(--jl-muted-2)" />
           </div>
-        </div>
+        </button>
 
-        <div className="jl-upload-row">
+        <button
+          type="button"
+          className="jl-upload-row jl-upload-picker"
+          onClick={() => setCategorySheet(true)}
+        >
           <div className="jl-upload-row__label">
             카테고리 <span>*</span>
           </div>
-          <div className="jl-chip-group">
-            {categories.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                className={`jl-chip-option ${category?.id === c.id ? 'is-active' : ''}`}
-                onClick={() => setCategory(c)}
-              >
-                {c.name}
-              </button>
-            ))}
+          <div className="jl-upload-picker__value">
+            <span className={mainCat ? '' : 'jl-upload-picker__placeholder'}>
+              {mainCat
+                ? `쥬얼리 › ${mainCat.name}${subCat ? ` › ${subCat.name}` : ''}`
+                : '카테고리를 선택해 주세요'}
+            </span>
+            <ChevronRight size={18} color="var(--jl-muted-2)" />
           </div>
-        </div>
+        </button>
 
         <div className="jl-upload-row">
           <div className="jl-upload-row__label">
@@ -177,6 +211,7 @@ export default function ProductUploadPage() {
             placeholder="예) 알함브라 네크리스 10모티브"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            maxLength={40}
           />
         </div>
 
@@ -190,23 +225,21 @@ export default function ProductUploadPage() {
           />
         </div>
 
-        <div className="jl-upload-row">
+        <button
+          type="button"
+          className="jl-upload-row jl-upload-picker"
+          onClick={() => setConditionSheet(true)}
+        >
           <div className="jl-upload-row__label">
             상품 상태 <span>*</span>
           </div>
-          <div className="jl-chip-group">
-            {CONDITIONS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={`jl-chip-option ${condition === c ? 'is-active' : ''}`}
-                onClick={() => setCondition(c)}
-              >
-                {c}
-              </button>
-            ))}
+          <div className="jl-upload-picker__value">
+            <span className={condition ? '' : 'jl-upload-picker__placeholder'}>
+              {condition || '상품 상태를 선택해 주세요'}
+            </span>
+            <ChevronRight size={18} color="var(--jl-muted-2)" />
           </div>
-        </div>
+        </button>
 
         <div className="jl-upload-row">
           <div className="jl-upload-row__label">
@@ -217,9 +250,10 @@ export default function ProductUploadPage() {
             placeholder={aiPrice ? `AI 추천 ${aiPrice.toLocaleString()}원` : '가격을 입력해 주세요.'}
             value={price}
             onChange={(e) => setPrice(e.target.value)}
+            inputMode="numeric"
           />
           {aiPrice ? (
-            <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--jl-primary)', fontWeight: 700 }}>
+            <div className="jl-upload-ai">
               <Sparkles size={14} /> AI 추천 {Math.round(aiPrice / 10000).toLocaleString()}만원
             </div>
           ) : null}
@@ -232,16 +266,19 @@ export default function ProductUploadPage() {
             placeholder="정가를 입력하면 할인율이 자동 계산됩니다."
             value={retailPrice}
             onChange={(e) => setRetailPrice(e.target.value)}
+            inputMode="numeric"
           />
         </div>
 
         <div className="jl-upload-row">
           <div className="jl-upload-row__label">상세 설명</div>
           <textarea
-            placeholder="상품 상태, 구입 시기, 보증서 유무 등을 최대한 자세히 적어주세요."
+            placeholder="브랜드, 모델명, 구매 시기, 하자 유무 등 상품 설명을 최대한 자세히 적어주세요."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            maxLength={2500}
           />
+          <div className="jl-upload-row__counter">{description.length}/2500</div>
         </div>
       </form>
 
@@ -251,11 +288,134 @@ export default function ProductUploadPage() {
           className="jl-btn jl-btn--primary"
           style={{ width: '100%' }}
           disabled={submitting}
-          onClick={handleSubmit}
+          onClick={() => handleSubmit()}
         >
-          {submitting ? '등록 중…' : '판매글 등록하기'}
+          {submitting ? '등록 중…' : '등록 완료'}
         </button>
       </div>
+
+      {/* Brand sheet */}
+      <BottomSheet
+        open={brandSheet}
+        title="브랜드 선택"
+        onClose={() => setBrandSheet(false)}
+        fullHeight
+      >
+        <ul className="jl-sheet__list">
+          {brands.map((b) => (
+            <li key={b.id}>
+              <button
+                type="button"
+                className={`jl-sheet__row ${brandId === b.id ? 'is-active' : ''}`}
+                onClick={() => {
+                  setBrandId(b.id);
+                  setBrandSheet(false);
+                }}
+              >
+                <div>
+                  <div className="jl-sheet__row-title">{b.name}</div>
+                  {b.latin ? <div className="jl-sheet__row-sub">{b.latin}</div> : null}
+                </div>
+                {brandId === b.id ? <span className="jl-sheet__dot" /> : null}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </BottomSheet>
+
+      {/* Category sheet: 2-step drill */}
+      <BottomSheet
+        open={categorySheet}
+        title="카테고리"
+        onClose={() => setCategorySheet(false)}
+        fullHeight
+      >
+        <nav className="jl-breadcrumb jl-breadcrumb--inSheet">
+          <button
+            type="button"
+            className={`jl-breadcrumb__item ${!pendingMain ? 'is-active' : ''}`}
+            onClick={() => setPendingMain(null)}
+          >
+            전체
+          </button>
+          <ChevronRight size={14} color="var(--jl-muted-2)" />
+          <span
+            className={`jl-breadcrumb__item ${!pendingMain ? 'is-active' : 'jl-breadcrumb__item--dim'}`}
+          >
+            쥬얼리
+          </span>
+          {pendingMain ? (
+            <>
+              <ChevronRight size={14} color="var(--jl-muted-2)" />
+              <span className="jl-breadcrumb__item is-active">{pendingMain.name}</span>
+            </>
+          ) : null}
+        </nav>
+        <div className="jl-category-divider" />
+        {!pendingMain ? (
+          <ul className="jl-category-list">
+            {categories.map((c) => (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  className="jl-category-list__row"
+                  onClick={() => {
+                    setPendingMain(c);
+                    if (mainCat && mainCat.id !== c.id) setSubCat(null);
+                  }}
+                >
+                  <span>{c.name}</span>
+                  <ChevronRight size={20} color="var(--jl-muted-2)" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <ul className="jl-category-list">
+            {pendingMain.children.map((sub) => (
+              <li key={sub.id}>
+                <button
+                  type="button"
+                  className={`jl-category-list__row ${subCat?.id === sub.id ? 'is-active' : ''}`}
+                  onClick={() => {
+                    setMainCat(pendingMain);
+                    setSubCat(sub);
+                    setCategorySheet(false);
+                  }}
+                >
+                  <span>{sub.name}</span>
+                  <ChevronRight size={20} color="var(--jl-muted-2)" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </BottomSheet>
+
+      {/* Condition sheet */}
+      <BottomSheet
+        open={conditionSheet}
+        title="상품상태는 어떤가요?"
+        onClose={() => setConditionSheet(false)}
+      >
+        <ul className="jl-condition-list">
+          {CONDITIONS.map((c) => (
+            <li key={c.label}>
+              <button
+                type="button"
+                className={`jl-condition-card ${condition === c.label ? 'is-active' : ''}`}
+                onClick={() => {
+                  setCondition(c.label);
+                  setConditionSheet(false);
+                }}
+              >
+                <div className="jl-condition-card__title">{c.label}</div>
+                <div className="jl-condition-card__desc">{c.desc}</div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </BottomSheet>
 
       {toast ? <Toast message={toast} onClose={() => setToast(null)} /> : null}
     </AppShell>

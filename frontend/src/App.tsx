@@ -10,6 +10,7 @@ import ProductDetail from './pages/ProductDetail';
 import ProductUpload from './pages/ProductUpload';
 import Search from './pages/Search';
 import BrandDetail from './pages/BrandDetail';
+import Categories from './pages/Categories';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
@@ -24,6 +25,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/categories" element={<Categories />} />
+        <Route path="/categories/:id" element={<Categories />} />
         <Route path="/products/:id" element={<ProductDetail />} />
         <Route path="/brand/:id" element={<BrandDetail />} />
         <Route
