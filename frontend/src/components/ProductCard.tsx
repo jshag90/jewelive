@@ -1,48 +1,76 @@
 import { Link } from 'react-router-dom';
+import { Eye, Sparkles } from 'lucide-react';
 import type { Product } from '../types/product';
 
-interface ProductCardProps {
-    product: Product;
+interface Props {
+  product: Product;
+  compact?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-    const images = product.images ? JSON.parse(product.images) : [];
-    const mainImage = images.length > 0 ? images[0] : null;
+function parseImages(raw?: string): string[] {
+  if (!raw) return [];
+  try {
+    const value = JSON.parse(raw);
+    if (Array.isArray(value)) return value.filter(Boolean);
+  } catch {
+    return [raw];
+  }
+  return [];
+}
 
-    return (
-        <Link to={`/products/${product.id}`} style={{ border: '1px solid var(--color-border)', cursor: 'pointer', backgroundColor: 'white', display: 'block', textDecoration: 'none', color: 'inherit' }}>
-            <div style={{ aspectRatio: '1', width: '100%', overflow: 'hidden', backgroundColor: '#f9f9f9', position: 'relative' }}>
-                {mainImage ? (
-                    <img src={mainImage} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc', fontSize: '13px' }}>
-                        이미지 없음
-                    </div>
-                )}
-            </div>
-            <div style={{ padding: '15px 10px 10px' }}>
-                <div style={{
-                    fontSize: '14px',
-                    color: '#212121',
-                    marginBottom: '10px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                }}>
-                    {product.title}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                    <div style={{ fontSize: '16px', fontWeight: 'bold' }}>
-                        {product.price.toLocaleString()} <span style={{ fontSize: '13px', fontWeight: 'normal' }}>원</span>
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#888' }}>
-                        {/* Placeholder for time */}
-                        8시간 전
-                    </div>
-                </div>
-            </div>
-        </Link>
-    );
-};
+function formatPrice(price: number) {
+  if (price >= 10000) {
+    const man = Math.floor(price / 10000);
+    const rest = price % 10000;
+    if (rest === 0) return `${man.toLocaleString()}만원`;
+    return `${man.toLocaleString()}만 ${rest.toLocaleString()}원`;
+  }
+  return `${price.toLocaleString()}원`;
+}
 
-export default ProductCard;
+export default function ProductCard({ product }: Props) {
+  const images = parseImages(product.images || undefined);
+  const main = images[0];
+  return (
+    <Link to={`/products/${product.id}`} className="jl-product-card">
+      <div className="jl-product-card__image">
+        {main ? (
+          <img src={main} alt={product.title} loading="lazy" />
+        ) : (
+          <div className="jl-product-card__image-ph">이미지 준비중</div>
+        )}
+        {product.badge ? <span className="jl-product-card__badge">{product.badge}</span> : null}
+        <div className="jl-product-card__chips">
+          {product.has_certificate ? <span className="jl-chip">보증서</span> : null}
+          {product.year ? <span className="jl-chip">{product.year}</span> : null}
+        </div>
+        <button
+          type="button"
+          className="jl-product-card__wish"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          aria-label="wish"
+        >
+          <Sparkles size={18} strokeWidth={1.6} fill="transparent" />
+        </button>
+      </div>
+      <div className="jl-product-card__body">
+        <div className="jl-product-card__brand">{product.brand || product.title}</div>
+        <div className="jl-product-card__name">{product.subtitle || product.title}</div>
+        {product.condition ? <div className="jl-product-card__meta">{product.condition}</div> : null}
+        <div className="jl-product-card__price-row">
+          <span className="jl-product-card__price">{formatPrice(product.price)}</span>
+          {product.discount_rate ? (
+            <span className="jl-product-card__discount">정가대비 {product.discount_rate}%↓</span>
+          ) : null}
+        </div>
+        {product.is_ready ? <div className="jl-product-card__ready">JEWELIVE Ready</div> : null}
+        <span className="jl-product-card__views">
+          <Eye size={12} /> {product.views}
+        </span>
+      </div>
+    </Link>
+  );
+}

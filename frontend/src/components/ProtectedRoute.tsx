@@ -1,16 +1,33 @@
-import { Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import { onAuthChange } from '../services/auth';
 
 interface ProtectedRouteProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-    const token = localStorage.getItem('token');
+  const location = useLocation();
+  const [state, setState] = useState<'loading' | 'auth' | 'guest'>('loading');
 
-    if (!token) {
-        return <Navigate to="/login" replace />;
-    }
+  useEffect(() => {
+    const unsub = onAuthChange((user) => {
+      setState(user ? 'auth' : 'guest');
+    });
+    return unsub;
+  }, []);
 
-    return <>{children}</>;
+  if (state === 'loading') {
+    return <div className="jl-loading">인증 정보를 확인하는 중…</div>;
+  }
+  if (state === 'guest') {
+    return (
+      <Navigate
+        to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`}
+        replace
+      />
+    );
+  }
+  return <>{children}</>;
 }

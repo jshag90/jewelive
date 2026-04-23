@@ -37,16 +37,19 @@
   },
   "apphosting": [
     {
-      "backendId": "jewel-live-web",
-      "rootDir": "frontend",
+      "backendId": "jewelive",
+      "rootDir": ".",
       "ignore": [
         "node_modules",
+        "frontend/node_modules",
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",
         "functions",
         "backend",
-        "uploads"
+        "uploads",
+        "ref",
+        ".agent"
       ]
     }
   ]

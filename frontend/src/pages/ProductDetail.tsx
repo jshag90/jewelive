@@ -1,281 +1,177 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { MessageSquare, Heart, Clock, Eye, ChevronRight, User as UserIcon } from 'lucide-react';
-import Header from '../components/Header';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ChevronLeft, Eye, Heart, MessageCircle, Share2, ShoppingBag } from 'lucide-react';
 import api from '../services/api';
+import AppShell from '../components/AppShell';
+import { formatPriceKrw, timeAgo } from '../lib/format';
+import { isLoggedIn } from '../services/auth';
+import Toast from '../components/Toast';
 import type { Product } from '../types/product';
 
-export default function ProductDetail() {
-    const { id } = useParams<{ id: string }>();
-    const [product, setProduct] = useState<Product | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [activeImageIndex, setActiveImageIndex] = useState(0);
+function parseImages(raw?: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [raw];
+  } catch {
+    return [raw];
+  }
+}
 
-    useEffect(() => {
-        fetchProduct();
-    }, [id]);
+export default function ProductDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [imageIdx, setImageIdx] = useState(0);
+  const [wished, setWished] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-    const fetchProduct = async () => {
-        try {
-            const response = await api.get(`/products/${id}`);
-            setProduct(response.data);
-        } catch (error) {
-            console.error('Failed to fetch product', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await api.get(`/products/${id}`);
+        setProduct(res.data);
+      } catch (err) {
+        console.error('detail', err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id]);
 
-    if (loading) {
-        return (
-            <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh' }}>
-                <Header />
-                <div className="container" style={{ padding: '4rem', textAlign: 'center' }}>
-                    Loading...
-                </div>
-            </div>
-        );
+  const images = useMemo(() => parseImages(product?.images || undefined), [product]);
+
+  async function toggleWish() {
+    if (!isLoggedIn()) {
+      navigate(`/login?redirect=${encodeURIComponent(`/products/${id}`)}`);
+      return;
     }
-
-    if (!product) {
-        return (
-            <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh' }}>
-                <Header />
-                <div className="container" style={{ padding: '4rem', textAlign: 'center' }}>
-                    상품을 찾을 수 없습니다.
-                </div>
-            </div>
-        );
+    try {
+      const res = await api.post('/me/wishlist/toggle', { product_id: Number(id) });
+      setWished(res.data?.wished === true);
+      setToast(res.data?.wished ? '위시에 담았어요.' : '위시에서 뺐어요.');
+    } catch {
+      setToast('잠시 후 다시 시도해 주세요.');
     }
+  }
 
-    const images = product.images ? JSON.parse(product.images) : [];
-
-    // Formatting for relative time (very simple version)
-    const getTimeAgo = (dateStr: string) => {
-        const date = new Date(dateStr);
-        const now = new Date();
-        const diffInMs = now.getTime() - date.getTime();
-        const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-
-        if (diffInHours < 1) return '방금 전';
-        if (diffInHours < 24) return `${diffInHours}시간 전`;
-        return `${Math.floor(diffInHours / 24)}일 전`;
-    };
-
+  if (loading) {
     return (
-        <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh' }}>
-            <Header />
-
-            <main className="container" style={{ padding: '2rem 0' }}>
-                {/* Breadcrumbs */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#666', marginBottom: '1.5rem' }}>
-                    <Link to="/">홈</Link>
-                    <ChevronRight size={14} />
-                    <span>{product.category_main || '카테고리'}</span>
-                    {product.category_medium && (
-                        <>
-                            <ChevronRight size={14} />
-                            <span>{product.category_medium}</span>
-                        </>
-                    )}
-                    {product.category_small && (
-                        <>
-                            <ChevronRight size={14} />
-                            <span>{product.category_small}</span>
-                        </>
-                    )}
-                </div>
-
-                <div style={{ display: 'flex', gap: '3rem', marginBottom: '3rem' }}>
-                    {/* Left: Image Section */}
-                    <div style={{ flex: '1', maxWidth: '500px' }}>
-                        <div style={{ position: 'relative', width: '100%', aspectRatio: '1', backgroundColor: '#f5f5f5', borderRadius: '4px', overflow: 'hidden' }}>
-                            {images.length > 0 ? (
-                                <img
-                                    src={images[activeImageIndex]}
-                                    alt={product.title}
-                                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                                />
-                            ) : (
-                                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc' }}>
-                                    이미지 없음
-                                </div>
-                            )}
-
-                            {/* Image Navigation Dots */}
-                            {images.length > 1 && (
-                                <div style={{ position: 'absolute', bottom: '15px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px' }}>
-                                    {images.map((_: any, idx: number) => (
-                                        <div
-                                            key={idx}
-                                            onClick={() => setActiveImageIndex(idx)}
-                                            style={{
-                                                width: '8px',
-                                                height: '8px',
-                                                borderRadius: '50%',
-                                                backgroundColor: activeImageIndex === idx ? 'var(--color-primary)' : 'rgba(0,0,0,0.2)',
-                                                cursor: 'pointer'
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Right: Product Info Section */}
-                    <div style={{ flex: '1.2', display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '1rem', color: '#212121' }}>{product.title}</h1>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                                <span style={{ fontSize: '36px', fontWeight: '800' }}>{product.price.toLocaleString()}</span>
-                                <span style={{ fontSize: '24px', fontWeight: '500' }}>원</span>
-                            </div>
-                        </div>
-
-                        <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '1.5rem 0' }} />
-
-                        <div style={{ display: 'flex', gap: '2rem', fontSize: '14px', color: '#888', marginBottom: '2rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <Heart size={16} /> {product.likes}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <Eye size={16} /> {product.views}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <Clock size={16} /> {getTimeAgo(product.created_at)}
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '1rem 0', fontSize: '14px', marginBottom: '2rem' }}>
-                            <div style={{ color: '#888' }}>상품상태</div>
-                            <div>{product.condition || '중고'}</div>
-
-                            <div style={{ color: '#888' }}>거래지역</div>
-                            <div>전국</div>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: 'auto' }}>
-                            <button style={{
-                                flex: 1,
-                                height: '60px',
-                                backgroundColor: '#ccc',
-                                color: 'white',
-                                border: 'none',
-                                fontSize: '18px',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                borderRadius: '2px'
-                            }}>
-                                <Heart size={20} fill="white" /> 찜 {product.likes}
-                            </button>
-                            <button style={{
-                                flex: 2,
-                                height: '60px',
-                                backgroundColor: 'white',
-                                color: 'var(--color-primary)',
-                                border: '1px solid var(--color-primary)',
-                                fontSize: '18px',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                borderRadius: '2px'
-                            }}>
-                                <MessageSquare size={20} /> 채팅하기
-                            </button>
-                            <button style={{
-                                flex: 2,
-                                height: '60px',
-                                backgroundColor: 'var(--color-primary)',
-                                color: 'white',
-                                border: 'none',
-                                fontSize: '18px',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                borderRadius: '2px'
-                            }}>
-                                바로구매
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '3rem' }}>
-                    {/* Bottom Left: Description */}
-                    <div style={{ flex: '1', borderTop: '1px solid #212121', paddingTop: '2rem' }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '2rem' }}>상품정보</h2>
-                        <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', color: '#444' }}>
-                            {product.description || '상품 설명이 없습니다.'}
-                        </div>
-
-                        {product.tags && (
-                            <div style={{ marginTop: '3rem' }}>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                                    {product.tags.split(',').map((tag, idx) => (
-                                        <span key={idx} style={{
-                                            backgroundColor: '#f5f5f5',
-                                            padding: '6px 12px',
-                                            borderRadius: '20px',
-                                            fontSize: '13px',
-                                            color: '#666'
-                                        }}>
-                                            #{tag.trim()}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Bottom Right: Shop info */}
-                    <div style={{ width: '330px', borderTop: '1px solid #212121', paddingTop: '2rem' }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '2rem' }}>가게정보</h2>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
-                            <div style={{ width: '48px', height: '48px', backgroundColor: '#eee', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <UserIcon size={24} color="#ccc" />
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{product.seller?.nickname || product.seller?.email?.split('@')[0] || '익명상점'}</div>
-                                <div style={{ fontSize: '13px', color: '#888' }}>상품 {product.seller?.id ? '...' : 0} | 팔로워 0</div>
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', padding: '15px 0', marginBottom: '1.5rem' }}>
-                            <div style={{ flex: 1, textAlign: 'center' }}>
-                                <div style={{ fontSize: '12px', color: '#888', marginBottom: '5px' }}>상점후기</div>
-                                <div style={{ fontWeight: 'bold' }}>0</div>
-                            </div>
-                            <div style={{ flex: 1, textAlign: 'center', borderLeft: '1px solid #eee' }}>
-                                <div style={{ fontSize: '12px', color: '#888', marginBottom: '5px' }}>상점오픈</div>
-                                <div style={{ fontWeight: 'bold' }}>1일 전</div>
-                            </div>
-                        </div>
-
-                        <button style={{
-                            width: '100%',
-                            height: '40px',
-                            backgroundColor: 'white',
-                            border: '1px solid #ddd',
-                            color: '#666',
-                            fontWeight: 'bold',
-                            cursor: 'pointer'
-                        }}>
-                            내 상점 가기
-                        </button>
-                    </div>
-                </div>
-            </main>
-        </div>
+      <AppShell hideBottomNav>
+        <div className="jl-loading">상품 정보를 불러오는 중…</div>
+      </AppShell>
     );
+  }
+
+  if (!product) {
+    return (
+      <AppShell hideBottomNav>
+        <div className="jl-empty">상품을 찾을 수 없어요.</div>
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell hideBottomNav>
+      <div className="jl-detail-hero">
+        {images[imageIdx] ? (
+          <img src={images[imageIdx]} alt={product.title} />
+        ) : (
+          <div className="jl-product-card__image-ph">이미지 없음</div>
+        )}
+        <button type="button" className="jl-detail-back" onClick={() => navigate(-1)} aria-label="back">
+          <ChevronLeft size={20} />
+        </button>
+        <div className="jl-detail-top-actions">
+          <button type="button" className="jl-detail-back" onClick={toggleWish} aria-label="wish">
+            <Heart size={18} fill={wished ? 'var(--jl-primary)' : 'transparent'} color={wished ? 'var(--jl-primary)' : 'var(--jl-ink)'} />
+          </button>
+          <button type="button" className="jl-detail-back" aria-label="share">
+            <Share2 size={18} />
+          </button>
+        </div>
+        {images.length > 1 ? (
+          <div style={{ position: 'absolute', bottom: 12, right: 12, background: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: 12, padding: '3px 10px', borderRadius: 12, zIndex: 3 }}>
+            {imageIdx + 1} / {images.length}
+          </div>
+        ) : null}
+      </div>
+
+      {images.length > 1 ? (
+        <div style={{ display: 'flex', gap: 8, padding: '10px 16px', overflowX: 'auto' }}>
+          {images.map((src, idx) => (
+            <button
+              key={src + idx}
+              type="button"
+              onClick={() => setImageIdx(idx)}
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 10,
+                overflow: 'hidden',
+                border: idx === imageIdx ? '2px solid var(--jl-ink)' : '1px solid var(--jl-border)',
+                padding: 0,
+                background: '#fff',
+              }}
+            >
+              <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      <section className="jl-detail-body">
+        <div className="jl-detail-brand">{product.brand || product.title}</div>
+        <div className="jl-detail-name">{product.subtitle || product.title}</div>
+        {product.condition ? <div className="jl-detail-cond">{product.condition}</div> : null}
+
+        <div className="jl-detail-price">
+          <span className="jl-detail-price__main">{formatPriceKrw(product.price)}</span>
+          {product.discount_rate ? (
+            <span className="jl-detail-price__discount">정가대비 {product.discount_rate}%↓</span>
+          ) : null}
+        </div>
+        {product.is_ready ? <div className="jl-product-card__ready">JEWELIVE Ready</div> : null}
+
+        <div className="jl-detail-stats">
+          <span>
+            <Eye size={14} style={{ verticalAlign: -2, marginRight: 4 }} />
+            {product.views}
+          </span>
+          <span>
+            <Heart size={14} style={{ verticalAlign: -2, marginRight: 4 }} />
+            {product.likes}
+          </span>
+          <span>{timeAgo(product.created_at)}</span>
+        </div>
+
+        <div className="jl-detail-desc">
+          {product.description || '판매자가 아직 상세 설명을 등록하지 않았어요.'}
+        </div>
+
+        <div style={{ marginTop: 24, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          {(product.tags || '').split(',').filter(Boolean).map((t) => (
+            <span key={t} className="jl-tag-pill">
+              #{t}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      <footer className="jl-detail-footer">
+        <button type="button" className="jl-detail-footer__wish" onClick={toggleWish} aria-label="wish">
+          <Heart size={20} color={wished ? 'var(--jl-primary)' : 'var(--jl-ink)'} fill={wished ? 'var(--jl-primary)' : 'transparent'} />
+        </button>
+        <Link to="/lounge" className="jl-btn jl-btn--outline jl-detail-footer__chat" style={{ textDecoration: 'none' }}>
+          <MessageCircle size={18} /> 채팅하기
+        </Link>
+        <button type="button" className="jl-btn jl-btn--primary jl-detail-footer__buy">
+          <ShoppingBag size={18} /> 바로구매
+        </button>
+      </footer>
+
+      {toast ? <Toast message={toast} onClose={() => setToast(null)} /> : null}
+    </AppShell>
+  );
 }

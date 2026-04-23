@@ -1,30 +1,41 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
+import Explore from './pages/Explore';
+import Lounge from './pages/Lounge';
+import TradeLetter from './pages/TradeLetter';
+import MyPage from './pages/MyPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import ProductUpload from './pages/ProductUpload';
 import ProductDetail from './pages/ProductDetail';
-// Start by creating index.css, do not import App.css
-// import './App.css'; 
-
+import ProductUpload from './pages/ProductUpload';
+import Search from './pages/Search';
+import BrandDetail from './pages/BrandDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 
-function App() {
+export default function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/lounge" element={<Lounge />} />
+        <Route path="/letter" element={<TradeLetter />} />
+        <Route path="/mypage" element={<MyPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/upload" element={
-          <ProtectedRoute>
-            <ProductUpload />
-          </ProtectedRoute>
-        } />
+        <Route path="/search" element={<Search />} />
         <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/brand/:id" element={<BrandDetail />} />
+        <Route
+          path="/sell"
+          element={
+            <ProtectedRoute>
+              <ProductUpload />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
-
-export default App;

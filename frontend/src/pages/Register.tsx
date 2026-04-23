@@ -1,92 +1,113 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import api from '../services/api';
-import { Lock, Mail, ArrowRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ChevronLeft } from 'lucide-react';
+import AppShell from '../components/AppShell';
+import { registerWithEmail } from '../services/auth';
 
-export default function Register() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
+function firebaseErrorMessage(code?: string, fallback?: string) {
+  switch (code) {
+    case 'auth/email-already-in-use':
+      return '이미 사용 중인 이메일이에요. 로그인해 주세요.';
+    case 'auth/invalid-email':
+      return '이메일 형식이 올바르지 않아요.';
+    case 'auth/weak-password':
+      return '비밀번호는 6자 이상이어야 해요.';
+    default:
+      return fallback || '회원가입에 실패했어요.';
+  }
+}
 
-    const handleRegister = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (password !== confirmPassword) {
-            setError("Passwords don't match");
-            return;
-        }
+export default function RegisterPage() {
+  const [email, setEmail] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-        try {
-            await api.post('/auth/register', { email, password });
-            navigate('/login');
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.detail || 'Registration failed. Please try again.';
-            setError(errorMessage);
-        }
-    };
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!email || !password) {
+      setError('이메일과 비밀번호를 입력해 주세요.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('비밀번호는 6자 이상이어야 해요.');
+      return;
+    }
+    if (password !== confirm) {
+      setError('비밀번호가 일치하지 않아요.');
+      return;
+    }
+    try {
+      setLoading(true);
+      await registerWithEmail(email, password, nickname || undefined);
+      navigate('/', { replace: true });
+    } catch (err: any) {
+      setError(firebaseErrorMessage(err?.code, err?.message));
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    return (
-        <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '400px' }}>
-                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                    <Link to="/" style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--color-primary)', letterSpacing: '-1px' }}>
-                        Jewelive
-                    </Link>
-                </div>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', textAlign: 'center', fontWeight: 'bold' }}>회원가입</h2>
-
-                {error && <div style={{ color: 'var(--color-accent)', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
-
-                <form onSubmit={handleRegister}>
-                    <div style={{ position: 'relative' }}>
-                        <Mail size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--color-text-muted)' }} />
-                        <input
-                            type="email"
-                            placeholder="이메일"
-                            className="input-field"
-                            style={{ paddingLeft: '40px' }}
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div style={{ position: 'relative' }}>
-                        <Lock size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--color-text-muted)' }} />
-                        <input
-                            type="password"
-                            placeholder="비밀번호"
-                            className="input-field"
-                            style={{ paddingLeft: '40px' }}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div style={{ position: 'relative' }}>
-                        <Lock size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--color-text-muted)' }} />
-                        <input
-                            type="password"
-                            placeholder="비밀번호 확인"
-                            className="input-field"
-                            style={{ paddingLeft: '40px' }}
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>
-                        회원가입 <ArrowRight size={18} style={{ marginLeft: '8px' }} />
-                    </button>
-                </form>
-
-                <p style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--color-text-muted)' }}>
-                    이미 계정이 있으신가요? <Link to="/login">로그인</Link>
-                </p>
-            </div>
+  return (
+    <AppShell hideBottomNav>
+      <header className="jl-auth-head">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          style={{ background: 'transparent', border: 'none' }}
+        >
+          <ChevronLeft size={22} />
+        </button>
+        <div className="jl-auth-head__title">회원가입</div>
+        <div style={{ width: 22 }} />
+      </header>
+      <form className="jl-auth-body" onSubmit={handleSubmit}>
+        <input
+          type="email"
+          placeholder="이메일"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="닉네임 (선택)"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="비밀번호 (6자 이상)"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="new-password"
+        />
+        <input
+          type="password"
+          placeholder="비밀번호 확인"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          autoComplete="new-password"
+        />
+        {error ? <div style={{ color: 'var(--jl-primary)', fontSize: 13 }}>{error}</div> : null}
+        <button
+          type="submit"
+          className="jl-btn jl-btn--primary"
+          disabled={loading}
+          style={{ marginTop: 8 }}
+        >
+          {loading ? '가입 중…' : '회원가입 완료'}
+        </button>
+        <div className="jl-auth-footer-link">
+          이미 계정이 있나요?{' '}
+          <Link to="/login" style={{ color: 'var(--jl-primary)', fontWeight: 700 }}>
+            로그인
+          </Link>
         </div>
-    );
+      </form>
+    </AppShell>
+  );
 }

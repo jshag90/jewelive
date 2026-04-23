@@ -11,7 +11,9 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read, create, update, delete: if isOwner(userId);
+      // Users can read their own profile; anyone signed-in may read public profile stub.
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create, update, delete: if isOwner(userId);
     }
 
     match /categories/{categoryId} {
@@ -19,13 +21,23 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /brands/{brandId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /products/{productId} {
       allow read: if true;
-      allow create: if isSignedIn()
-        && request.resource.data.sellerId == request.auth.uid;
-      allow update, delete: if isSignedIn()
-        && resource.data.sellerId == request.auth.uid
-        && request.resource.data.sellerId == resource.data.sellerId;
+      // Client writes to products are disabled: App Hosting backend owns the write path.
+      allow write: if false;
+    }
+
+    match /wishlists/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    match /_meta/{docId} {
+      allow read, write: if false;
     }
   }
 }

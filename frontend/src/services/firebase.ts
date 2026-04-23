@@ -1,10 +1,12 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import {
+  GoogleAuthProvider,
+  browserLocalPersistence,
+  getAuth,
+  setPersistence,
+} from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getFunctions } from 'firebase/functions';
 import { getStorage } from 'firebase/storage';
-
-export const firebaseRegion = 'asia-northeast3';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyAWfDRrsWWcspH4-jlbfQzosFcpruJ--xc',
@@ -18,8 +20,13 @@ const firebaseConfig = {
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const functions = getFunctions(app, firebaseRegion);
-export const storage = getStorage(app);
+auth.languageCode = 'ko';
+// Persist login across browser sessions on the same device.
+void setPersistence(auth, browserLocalPersistence).catch(() => undefined);
 
+export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+export const db = getFirestore(app);
+export const storage = getStorage(app);
 export default app;
