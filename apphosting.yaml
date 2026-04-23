@@ -1,20 +1,15 @@
-# Fallback App Hosting configuration when the backend root directory is the
-# repository root instead of /frontend.
+# Firebase App Hosting configuration for the `jewelive` backend.
+# The backend rootDir is the repository root. App Hosting will detect the
+# root `package.json` and automatically run:
+#   install: npm ci
+#   build:   npm run build   (→ builds the Vite frontend into frontend/dist)
+#   start:   npm start       (→ boots apphosting-server.js, which mounts the
+#                              Express API from frontend/runtime-server.cjs and
+#                              serves frontend/dist as the SPA)
 
 runConfig:
   minInstances: 0
   maxInstances: 1
-
-scripts:
-  buildCommand: npm ci && npm run build
-  runCommand: npm start
-
-outputFiles:
-  serverApp:
-    include:
-      - frontend/dist
-      - node_modules
-      - apphosting-server.js
-      - frontend/runtime-server.cjs
-      - package.json
-      - package-lock.json
+  cpu: 1
+  memoryMiB: 512
+  concurrency: 80
