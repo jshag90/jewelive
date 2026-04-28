@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import { onAuthChange } from '../services/auth';
+import { waitForAuthReady, onAuthChange } from '../services/auth';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -12,10 +12,19 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const [state, setState] = useState<'loading' | 'auth' | 'guest'>('loading');
 
   useEffect(() => {
-    const unsub = onAuthChange((user) => {
-      setState(user ? 'auth' : 'guest');
+    let mounted = true;
+    // First settle on the persisted session …
+    waitForAuthReady().then((user) => {
+      if (mounted) setState(user ? 'auth' : 'guest');
     });
-    return unsub;
+    // … then keep listening for sign-in/out events.
+    const unsub = onAuthChange((user) => {
+      if (mounted) setState(user ? 'auth' : 'guest');
+    });
+    return () => {
+      mounted = false;
+      unsub();
+    };
   }, []);
 
   if (state === 'loading') {

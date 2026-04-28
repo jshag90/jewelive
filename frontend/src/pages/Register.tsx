@@ -12,6 +12,10 @@ function firebaseErrorMessage(code?: string, fallback?: string) {
       return '이메일 형식이 올바르지 않아요.';
     case 'auth/weak-password':
       return '비밀번호는 6자 이상이어야 해요.';
+    case 'auth/operation-not-allowed':
+      return '이메일/비밀번호 가입이 아직 활성화되지 않았어요. 잠시 후 다시 시도해 주세요.';
+    case 'auth/network-request-failed':
+      return '네트워크 오류가 발생했어요. 연결 상태를 확인해 주세요.';
     default:
       return fallback || '회원가입에 실패했어요.';
   }

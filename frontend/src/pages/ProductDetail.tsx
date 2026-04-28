@@ -4,7 +4,7 @@ import { ChevronLeft, Eye, Heart, MessageCircle, Share2, ShoppingBag } from 'luc
 import api from '../services/api';
 import AppShell from '../components/AppShell';
 import { formatPriceKrw, timeAgo } from '../lib/format';
-import { isLoggedIn } from '../services/auth';
+import { waitForAuthReady } from '../services/auth';
 import Toast from '../components/Toast';
 import type { Product } from '../types/product';
 
@@ -43,7 +43,8 @@ export default function ProductDetailPage() {
   const images = useMemo(() => parseImages(product?.images || undefined), [product]);
 
   async function toggleWish() {
-    if (!isLoggedIn()) {
+    const user = await waitForAuthReady();
+    if (!user) {
       navigate(`/login?redirect=${encodeURIComponent(`/products/${id}`)}`);
       return;
     }

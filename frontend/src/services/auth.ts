@@ -1,8 +1,10 @@
 import {
   createUserWithEmailAndPassword,
+  getRedirectResult,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
   updateProfile,
   type User as FirebaseUser,
@@ -12,6 +14,30 @@ import api from './api';
 import type { User } from '../types/product';
 
 const USER_KEY = 'jl_user';
+
+// Resolves once Firebase has finished restoring the persisted session on boot.
+// Many components mount before that completes, so we expose a promise instead
+// of a synchronous flag based on auth.currentUser.
+const authReady: Promise<FirebaseUser | null> = new Promise((resolve) => {
+  const unsub = onAuthStateChanged(auth, (user) => {
+    unsub();
+    resolve(user);
+  });
+});
+
+// Surface any pending redirect-based Google sign-in result on app start so the
+// follow-up profile sync runs without a manual trigger.
+void getRedirectResult(auth)
+  .then(async (result) => {
+    if (result?.user) {
+      await syncMe();
+    }
+  })
+  .catch((err) => {
+    if (err?.code !== 'auth/no-auth-event') {
+      console.warn('redirect result error', err?.code || err?.message);
+    }
+  });
 
 export function getCachedUser(): User | null {
   const raw = localStorage.getItem(USER_KEY);
@@ -35,8 +61,16 @@ export function currentFirebaseUser(): FirebaseUser | null {
   return auth.currentUser;
 }
 
+/** Synchronous best-effort check. Use `waitForAuthReady()` if accuracy on first
+ *  paint matters (e.g. redirect guards). */
 export function isLoggedIn(): boolean {
   return !!auth.currentUser;
+}
+
+/** Resolves once the persisted Firebase session has been restored (or proven
+ *  absent). Returns the FirebaseUser if signed in. */
+export function waitForAuthReady(): Promise<FirebaseUser | null> {
+  return authReady;
 }
 
 export async function getIdToken(): Promise<string | null> {
@@ -50,7 +84,8 @@ async function syncMe(): Promise<User | null> {
     const res = await api.get('/me');
     setCachedUser(res.data as User);
     return res.data as User;
-  } catch {
+  } catch (err) {
+    console.warn('failed to sync /api/me', err);
     return null;
   }
 }
@@ -76,9 +111,29 @@ export async function registerWithEmail(
   return syncMe();
 }
 
+function isPopupBlockedError(err: unknown): boolean {
+  const code = (err as { code?: string } | null | undefined)?.code || '';
+  return [
+    'auth/popup-blocked',
+    'auth/popup-closed-by-user',
+    'auth/cancelled-popup-request',
+    'auth/operation-not-supported-in-this-environment',
+    'auth/web-storage-unsupported',
+  ].includes(code);
+}
+
 export async function loginWithGoogle(): Promise<User | null> {
-  await signInWithPopup(auth, googleProvider);
-  return syncMe();
+  try {
+    await signInWithPopup(auth, googleProvider);
+    return syncMe();
+  } catch (err) {
+    if (isPopupBlockedError(err)) {
+      // Fallback for in-app browsers / blocked popups: redirect flow.
+      await signInWithRedirect(auth, googleProvider);
+      return null;
+    }
+    throw err;
+  }
 }
 
 export async function logout() {

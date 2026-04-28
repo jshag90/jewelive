@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import Toast from '../components/Toast';
-import { isLoggedIn, loginWithEmail, loginWithGoogle } from '../services/auth';
+import { loginWithEmail, loginWithGoogle, waitForAuthReady } from '../services/auth';
 
 function firebaseErrorMessage(code?: string, fallback?: string) {
   switch (code) {
@@ -19,6 +19,12 @@ function firebaseErrorMessage(code?: string, fallback?: string) {
       return '잠시 후 다시 시도해 주세요.';
     case 'auth/popup-closed-by-user':
       return '로그인을 취소했어요.';
+    case 'auth/popup-blocked':
+      return '브라우저가 팝업을 차단했어요. 새 창 허용 후 다시 시도해 주세요.';
+    case 'auth/unauthorized-domain':
+      return '이 도메인은 Firebase Authentication에서 승인되지 않았어요. 관리자에게 문의해 주세요.';
+    case 'auth/network-request-failed':
+      return '네트워크 오류가 발생했어요. 연결 상태를 확인해 주세요.';
     case 'auth/operation-not-allowed':
       return '이 로그인 방식이 아직 활성화되지 않았어요. 잠시 후 다시 시도해 주세요.';
     default:
@@ -37,8 +43,15 @@ export default function LoginPage() {
   const [params] = useSearchParams();
 
   useEffect(() => {
-    if (isLoggedIn()) navigate('/', { replace: true });
-  }, [navigate]);
+    let mounted = true;
+    waitForAuthReady().then((user) => {
+      if (mounted && user) navigate(redirectTarget(), { replace: true });
+    });
+    return () => {
+      mounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function redirectTarget() {
     return params.get('redirect') || '/';
@@ -73,10 +86,6 @@ export default function LoginPage() {
     } finally {
       setGoogleLoading(false);
     }
-  }
-
-  function notYet() {
-    setToast('해당 SNS 로그인은 곧 오픈해요.');
   }
 
   return (
@@ -170,12 +179,6 @@ export default function LoginPage() {
             />
           </svg>
           {googleLoading ? 'Google 로그인 중…' : 'Google 계정으로 시작하기'}
-        </button>
-        <button type="button" className="jl-btn jl-btn--kakao" onClick={notYet}>
-          💬 카카오 로그인
-        </button>
-        <button type="button" className="jl-btn jl-btn--apple" onClick={notYet}>
-           Apple 로그인
         </button>
       </div>
 
