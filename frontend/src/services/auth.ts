@@ -90,6 +90,10 @@ export async function registerWithEmail(
 ): Promise<User | null> {
   const credential = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(credential.user, { displayName: nickname.trim() });
+  // displayName이 ID 토큰의 name claim에 반영되도록 강제 갱신.
+  // 이 단계가 빠지면 직후 /api/me 호출이 displayName 없는 캐시 토큰을 써서
+  // 백엔드가 닉네임을 email prefix로 잘못 저장한다.
+  await credential.user.getIdToken(true);
   return syncMe();
 }
 

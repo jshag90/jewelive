@@ -760,8 +760,15 @@ async function provisionUser(uid, profile) {
       photo_url: profile.photo_url || existing.photo_url || null,
       updated_at: ts,
     };
-    if (!existing.nickname && profile.nickname) {
+    // displayName이 갱신됐거나 기존 nickname이 비어있으면 동기화.
+    // 폴백 email prefix는 미들웨어에서 더 이상 채우지 않으므로 안전.
+    if (profile.nickname && profile.nickname !== existing.nickname) {
       updates.nickname = profile.nickname;
+    } else if (!existing.nickname) {
+      updates.nickname =
+        profile.nickname ||
+        (profile.email ? profile.email.split('@')[0] : null) ||
+        'JEWELIVE';
     }
     const next = { ...existing, ...updates };
     await withStore(
@@ -814,13 +821,13 @@ async function verifyFirebaseToken(req, res, next, { optional = false } = {}) {
   }
   try {
     const decoded = await admin.auth().verifyIdToken(token);
+    // decoded.name이 비어있으면 그대로 null을 넘긴다. provisionUser가
+    // "신규 생성"인지 "업데이트"인지에 따라 다르게 처리해야 하므로,
+    // 미들웨어에서 email-prefix 폴백을 채우면 그 분기 정보를 잃는다.
     req.user = {
       id: decoded.uid,
       email: decoded.email || null,
-      nickname:
-        decoded.name ||
-        (decoded.email ? decoded.email.split('@')[0] : null) ||
-        'JEWELIVE',
+      nickname: decoded.name || null,
       photo_url: decoded.picture || null,
       provider: decoded.firebase?.sign_in_provider || null,
     };
