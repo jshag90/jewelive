@@ -440,6 +440,14 @@ const defaultProducts = [
 
 const nowIso = () => new Date().toISOString();
 
+const DEFAULT_NICKNAME = 'JEWELIVE';
+
+function deriveNicknameFallback(email) {
+  if (!email) return DEFAULT_NICKNAME;
+  const prefix = email.split('@')[0];
+  return prefix || DEFAULT_NICKNAME;
+}
+
 function cloneSeedProduct(seed) {
   const ts = nowIso();
   return {
@@ -760,15 +768,12 @@ async function provisionUser(uid, profile) {
       photo_url: profile.photo_url || existing.photo_url || null,
       updated_at: ts,
     };
-    // displayName이 갱신됐거나 기존 nickname이 비어있으면 동기화.
-    // 폴백 email prefix는 미들웨어에서 더 이상 채우지 않으므로 안전.
+    // 폴백 email prefix는 미들웨어에서 더 이상 채우지 않으므로 displayName이
+    // 와야만 nickname이 갱신된다. existing.nickname이 비어있으면 처음으로 폴백.
     if (profile.nickname && profile.nickname !== existing.nickname) {
       updates.nickname = profile.nickname;
     } else if (!existing.nickname) {
-      updates.nickname =
-        profile.nickname ||
-        (profile.email ? profile.email.split('@')[0] : null) ||
-        'JEWELIVE';
+      updates.nickname = profile.nickname || deriveNicknameFallback(profile.email);
     }
     const next = { ...existing, ...updates };
     await withStore(
@@ -784,7 +789,7 @@ async function provisionUser(uid, profile) {
   const fresh = {
     id: uid,
     email: profile.email || null,
-    nickname: profile.nickname || (profile.email ? profile.email.split('@')[0] : 'JEWELIVE'),
+    nickname: profile.nickname || deriveNicknameFallback(profile.email),
     photo_url: profile.photo_url || null,
     provider: profile.provider || null,
     points: 50000,
