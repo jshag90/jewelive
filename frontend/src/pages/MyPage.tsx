@@ -60,7 +60,7 @@ export default function MyPage() {
               <>
                 <div className="jl-my-hero__welcome">{user.email}</div>
                 <div className="jl-my-hero__name">
-                  {user.nickname || user.email?.split('@')[0] || 'JEWELIVE 회원'}님 ·{' '}
+                  {user.nickname || 'JEWELIVE 회원'}님 ·{' '}
                   {user.membership_grade || 'SILVER'}
                 </div>
               </>

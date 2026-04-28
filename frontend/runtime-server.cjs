@@ -129,6 +129,120 @@ const defaultPriceBands = [
 // Retained so existing /api/brands consumers don't 500 during transition.
 const defaultBrands = [];
 
+// ---------------------------------------------------------------------------
+// AI valuation prototype
+// ---------------------------------------------------------------------------
+// 정의서 v1.0의 V_total = (W_est - W_stone) × P_gram × K_smart
+//                       + Average(L_market) × R_resid 수식을 따르되,
+// Vision/RAG 파이프라인은 미구현이라 시드 기반 결정론적 난수로 채워 둔다.
+// 같은 시드(=같은 이미지 hash)면 항상 같은 결과를 반환하므로 UX가 안정적.
+const K_SMART_TABLE = [
+  { grade: 'S', label: '순금/24K', k14: 0.985, k18: 0.985 },
+  { grade: 'A', label: '솔리드 반지/메달', k14: 0.572, k18: 0.738 },
+  { grade: 'B', label: '일반 체인/팔찌', k14: 0.565, k18: 0.730 },
+  { grade: 'C', label: '할로우/복잡 세공', k14: 0.550, k18: 0.715 },
+  { grade: 'D', label: '스톤 세팅/귀걸이', k14: 0.540, k18: 0.700 },
+];
+
+const MATERIAL_TO_PURITY = {
+  'gold-yellow': { karat: 14, gramPriceKey: 'gold' },
+  'gold-white': { karat: 18, gramPriceKey: 'gold' },
+  'gold-rose': { karat: 14, gramPriceKey: 'gold' },
+  silver: { karat: 925, gramPriceKey: 'silver' },
+  diamond: { karat: 18, gramPriceKey: 'gold' },
+  pearl: { karat: 0, gramPriceKey: 'pearl' },
+  gem: { karat: 18, gramPriceKey: 'gold' },
+  other: { karat: 14, gramPriceKey: 'gold' },
+};
+
+// 1g당 매입 단가 (프로토타입 고정값, 실서비스에선 시세 API로 교체)
+const GRAM_PRICE = {
+  gold: 95_000,    // 14K 환산 평균 (실제론 P_gram × purity로 계산)
+  silver: 1_400,
+  pearl: 0,        // 진주는 무게 기반이 아니므로 카테고리 룩업으로 대체
+};
+
+function pickFromHash(hashHex, offset, length) {
+  const slice = hashHex.slice(offset, offset + length);
+  return parseInt(slice, 16);
+}
+
+function simulateValuation({ seed, material, category, condition } = {}) {
+  const seedSource = String(seed || crypto.randomUUID());
+  const hashHex = crypto.createHash('sha256').update(seedSource).digest('hex');
+
+  // W_est: 1.2g ~ 12.0g 범위에서 결정론적으로 선택
+  const wEst = Math.round(((pickFromHash(hashHex, 0, 4) / 0xffff) * 10.8 + 1.2) * 100) / 100;
+
+  // W_stone: 30% 확률로 스톤 존재, 0.05~0.6g
+  const stoneRoll = pickFromHash(hashHex, 4, 2) / 0xff;
+  const wStone =
+    stoneRoll < 0.3
+      ? Math.round(((pickFromHash(hashHex, 6, 4) / 0xffff) * 0.55 + 0.05) * 100) / 100
+      : 0;
+
+  // K_smart 등급 결정 (material 힌트로 D 그레이드 보정)
+  const gradeIdx = pickFromHash(hashHex, 10, 2) % K_SMART_TABLE.length;
+  let grade = K_SMART_TABLE[gradeIdx];
+  if (material === 'diamond' || material === 'gem') {
+    grade = K_SMART_TABLE[4]; // D grade
+  }
+  if (material === 'silver' || material === 'pearl') {
+    // 은/진주는 K_smart 적용 대상이 아니지만 프로토타입에선 B 등급 사용
+    grade = K_SMART_TABLE[2];
+  }
+
+  const purity = MATERIAL_TO_PURITY[material || 'gold-yellow'] || MATERIAL_TO_PURITY['gold-yellow'];
+  const kSmart = purity.karat >= 18 ? grade.k18 : grade.k14;
+  const pGram = GRAM_PRICE[purity.gramPriceKey] || GRAM_PRICE.gold;
+
+  // L_market: RAG 매칭 평균 공임비 (4만~25만원 범위)
+  const lMarket = (pickFromHash(hashHex, 12, 4) % 210_001) + 40_000;
+  // R_resid: 0.20 ~ 0.30
+  const rResid = Math.round((((pickFromHash(hashHex, 16, 2) / 0xff) * 0.10) + 0.20) * 100) / 100;
+
+  const goldComponent = Math.max(0, (wEst - wStone) * pGram * kSmart);
+  const designComponent = lMarket * rResid;
+  const vTotalRaw = goldComponent + designComponent;
+  // 만원 단위 반올림
+  const vTotal = Math.round(vTotalRaw / 10000) * 10000;
+
+  // 신뢰도: 0.62 ~ 0.92, 시드 기반
+  const confidence = Math.round((((pickFromHash(hashHex, 18, 2) / 0xff) * 0.30) + 0.62) * 100) / 100;
+
+  // 스톤 직경 ≥ 3부 다이아 추정 (프로토타입은 고정 룰)
+  const oversizedStone = wStone >= 0.4;
+
+  return {
+    seed: hashHex.slice(0, 16),
+    V_total: vTotal,
+    breakdown: {
+      W_est: wEst,
+      W_stone: wStone,
+      P_gram: pGram,
+      K_smart: kSmart,
+      K_grade: grade.grade,
+      K_grade_label: grade.label,
+      L_market: lMarket,
+      R_resid: rResid,
+      gold_component: Math.round(goldComponent),
+      design_component: Math.round(designComponent),
+    },
+    similar_products: [], // RAG 미구현
+    confidence,
+    needs_manual_review: oversizedStone,
+    notice: oversizedStone
+      ? '스톤 추정 중량이 커서 전문가 수동 감정을 권장해요.'
+      : null,
+    inputs: {
+      material: material || null,
+      category: category || null,
+      condition: condition || null,
+    },
+    is_prototype: true,
+  };
+}
+
 const defaultWiki = [
   { id: 1, product_name: '14K 데일리 실반지', product_sub: '옐로우골드 · 사이즈 11호', price: 128_000, traded_at: '2026-04-23T14:15:00+09:00', image: 'https://images.unsplash.com/photo-1603974372039-adc49044b6bd?auto=format&fit=crop&w=600&q=60' },
   { id: 2, product_name: '실버 큐빅 스터드 귀걸이', product_sub: '925 스털링 실버', price: 24_000, traded_at: '2026-04-22T11:02:00+09:00', image: 'https://images.unsplash.com/photo-1535632066927-ec20c7a5e989?auto=format&fit=crop&w=600&q=60' },
@@ -846,13 +960,21 @@ async function createProduct(payload, userCtx) {
   );
 }
 
-async function uploadProductImage(file, userCtx) {
+async function uploadProductImage(file, userCtx, ctx = {}) {
   const randomId = crypto.randomUUID();
   const ext = path.extname(file.originalname || '') || '.jpg';
   const storagePath = `products/${userCtx.id}/${randomId}${ext}`;
   const downloadToken = crypto.randomUUID();
-  const predictedPrice = (Math.floor(Math.random() * 301) + 100) * 10000;
   const contentType = file.mimetype || 'application/octet-stream';
+
+  // 같은 이미지를 다시 올려도 같은 결과가 나오도록 파일 hash를 시드로 사용
+  const fileHash = crypto.createHash('sha256').update(file.buffer).digest('hex');
+  const valuation = simulateValuation({
+    seed: fileHash,
+    material: ctx.material,
+    category: ctx.category,
+    condition: ctx.condition,
+  });
 
   return withStorage(
     async () => {
@@ -864,11 +986,16 @@ async function uploadProductImage(file, userCtx) {
         },
       });
       const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media&token=${downloadToken}`;
-      return { url: publicUrl, predicted_price: predictedPrice };
+      return {
+        url: publicUrl,
+        predicted_price: valuation.V_total,
+        valuation,
+      };
     },
     async () => ({
       url: `data:${contentType};base64,${file.buffer.toString('base64')}`,
-      predicted_price: predictedPrice,
+      predicted_price: valuation.V_total,
+      valuation,
     }),
   );
 }
@@ -1044,10 +1171,34 @@ function createApp({ staticDir }) {
         res.status(400).json({ detail: '이미지 파일이 필요합니다.' });
         return;
       }
-      res.json(await uploadProductImage(req.file, req.user));
+      const ctx = {
+        material: req.body?.material || null,
+        category: req.body?.category || null,
+        condition: req.body?.condition || null,
+      };
+      res.json(await uploadProductImage(req.file, req.user, ctx));
     } catch (error) {
       console.error('Image upload failed:', error);
       res.status(500).json({ detail: '이미지 업로드 실패' });
+    }
+  });
+
+  // 명시적 AI 감정 호출 (이미지 url 또는 product_id 기반 시드)
+  app.post('/api/ai/valuation', optionalAuth, async (req, res) => {
+    try {
+      const body = req.body || {};
+      const seed = body.seed || body.image_url || body.product_id || crypto.randomUUID();
+      res.json(
+        simulateValuation({
+          seed: String(seed),
+          material: body.material || null,
+          category: body.category || null,
+          condition: body.condition || null,
+        }),
+      );
+    } catch (error) {
+      console.error('Valuation failed:', error);
+      res.status(500).json({ detail: 'AI 감정 실패' });
     }
   });
 

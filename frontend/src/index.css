@@ -1,21 +1,27 @@
 :root {
-  --jl-primary: #e85d3c;
-  --jl-primary-dark: #c94628;
-  --jl-primary-soft: #fdeadf;
-  --jl-ink: #111111;
-  --jl-ink-2: #1f1f1f;
+  /* Brand palette — High-end & Professional
+     Navy = 신뢰/보안, Emerald = ESG/안정성, Gold = 럭셔리 */
+  --jl-primary: #0e2a47;
+  --jl-primary-dark: #08203a;
+  --jl-primary-soft: #e6ecf3;
+  --jl-ink: #0a1a2f;
+  --jl-ink-2: #14253c;
   --jl-text: #2c2c2e;
   --jl-muted: #8a8a8e;
   --jl-muted-2: #b2b2b6;
   --jl-bg: #ffffff;
-  --jl-surface: #f7f7f8;
-  --jl-surface-2: #f0f0f2;
-  --jl-border: #ececee;
-  --jl-line: #e5e5e7;
-  --jl-accent-blue: #3a5aff;
-  --jl-accent-purple: #6a59d1;
-  --jl-success: #2f8c5e;
-  --jl-warn: #e4b000;
+  --jl-surface: #f6f8fb;
+  --jl-surface-2: #eef2f7;
+  --jl-border: #e3e8ef;
+  --jl-line: #dde3eb;
+  --jl-accent-emerald: #0e8c5a;
+  --jl-accent-emerald-soft: #e3f5ec;
+  --jl-accent-gold: #c9a961;
+  --jl-accent-gold-soft: #f6ecd2;
+  --jl-accent-blue: var(--jl-accent-emerald);
+  --jl-accent-purple: var(--jl-accent-gold);
+  --jl-success: #0e8c5a;
+  --jl-warn: #c9a961;
   --jl-danger: #d23f3f;
 
   --jl-radius-sm: 8px;
@@ -379,7 +385,7 @@ img {
   background: var(--jl-primary);
   color: #fff;
   border-color: var(--jl-primary);
-  box-shadow: 0 6px 18px rgba(232, 93, 60, 0.28);
+  box-shadow: 0 6px 18px rgba(14, 42, 71, 0.28);
 }
 
 .jl-quick__pill--accent .jl-quick__pill-icon {
@@ -630,7 +636,7 @@ img {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 10px 24px rgba(232, 93, 60, 0.4);
+  box-shadow: 0 10px 24px rgba(14, 42, 71, 0.4);
   z-index: 45;
 }
 
@@ -668,7 +674,7 @@ img {
   color: var(--jl-primary);
   font-weight: 800;
   border-left-color: var(--jl-primary);
-  background: rgba(232, 93, 60, 0.06);
+  background: rgba(14, 42, 71, 0.06);
 }
 
 .jl-explore-main {
@@ -736,7 +742,7 @@ img {
 }
 
 .jl-circle__icon--all {
-  background: #b58d6b;
+  background: var(--jl-accent-gold);
   color: #fff;
   font-size: 15px;
   letter-spacing: 0.04em;
@@ -915,8 +921,8 @@ img {
 
 .jl-wiki-badge {
   display: inline-flex;
-  background: #eef2ff;
-  color: #3a5aff;
+  background: var(--jl-accent-emerald-soft);
+  color: var(--jl-accent-emerald);
   font-size: 12px;
   font-weight: 800;
   padding: 3px 10px;
@@ -1010,13 +1016,13 @@ img {
 }
 
 .jl-tag-pill--event {
-  background: #fff1ea;
+  background: var(--jl-accent-gold-soft);
   color: var(--jl-primary);
 }
 
 .jl-tag-pill--notice {
-  background: #eef2ff;
-  color: var(--jl-accent-blue);
+  background: var(--jl-primary-soft);
+  color: var(--jl-primary);
 }
 
 /* Letter (거래레터) */
@@ -1203,9 +1209,9 @@ img {
   position: fixed;
   right: calc(50% - min(50vw, calc(var(--jl-page-max) / 2)) + 18px);
   bottom: calc(var(--jl-bottom-nav-height) + 16px + env(safe-area-inset-bottom, 0px));
-  background: #d5cdc4;
-  color: var(--jl-ink);
-  border: 2px solid #f6dcb0;
+  background: var(--jl-accent-gold-soft);
+  color: var(--jl-primary);
+  border: 2px solid var(--jl-accent-gold);
   border-radius: 50%;
   width: 54px;
   height: 54px;
@@ -1331,7 +1337,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #c19879;
+  background: var(--jl-accent-gold);
   color: #fff;
   padding: 10px 14px;
   font-weight: 800;
@@ -1860,7 +1866,7 @@ img {
 }
 
 .jl-sheet__row.is-active {
-  background: rgba(232, 93, 60, 0.06);
+  background: rgba(14, 42, 71, 0.06);
 }
 
 .jl-sheet__row-title {
@@ -1931,6 +1937,61 @@ img {
   font-size: 12px;
 }
 
+.jl-ai-report {
+  margin-top: 10px;
+  background: linear-gradient(135deg, #fff3ee 0%, #fff 100%);
+  border: 1px solid rgba(232, 93, 60, 0.18);
+  border-radius: var(--jl-radius-md);
+  padding: 12px 14px;
+}
+
+.jl-ai-report__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--jl-primary);
+}
+
+.jl-ai-report__conf {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--jl-muted);
+}
+
+.jl-ai-report__list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 14px;
+}
+
+.jl-ai-report__list li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--jl-muted);
+}
+
+.jl-ai-report__list li strong {
+  color: var(--jl-ink);
+  font-weight: 700;
+}
+
+.jl-ai-report__notice {
+  margin-top: 8px;
+  padding: 6px 8px;
+  background: rgba(232, 93, 60, 0.08);
+  color: var(--jl-primary);
+  border-radius: var(--jl-radius-sm, 8px);
+  font-size: 11px;
+  font-weight: 700;
+}
+
 /* Condition cards */
 .jl-condition-list {
   display: flex;
@@ -1957,7 +2018,7 @@ img {
 
 .jl-condition-card.is-active {
   border-color: var(--jl-primary);
-  background: #fff6f2;
+  background: var(--jl-primary-soft);
 }
 
 .jl-condition-card__title {
@@ -1996,6 +2057,11 @@ img {
 
 .jl-chip-group--scroll::-webkit-scrollbar {
   display: none;
+}
+
+.jl-chip-group--scroll > .jl-chip-option {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .jl-chip-option--material {
@@ -2055,8 +2121,8 @@ img {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #fff3ee;
-  color: var(--jl-primary);
+  background: var(--jl-accent-emerald-soft);
+  color: var(--jl-accent-emerald);
   font-size: 12px;
   font-weight: 700;
   padding: 6px 10px;

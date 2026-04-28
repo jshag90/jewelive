@@ -12,6 +12,27 @@ interface ConditionOption {
   desc: string;
 }
 
+interface AiValuation {
+  seed: string;
+  V_total: number;
+  breakdown: {
+    W_est: number;
+    W_stone: number;
+    P_gram: number;
+    K_smart: number;
+    K_grade: string;
+    K_grade_label: string;
+    L_market: number;
+    R_resid: number;
+    gold_component: number;
+    design_component: number;
+  };
+  confidence: number;
+  needs_manual_review: boolean;
+  notice: string | null;
+  is_prototype: boolean;
+}
+
 const CONDITIONS: ConditionOption[] = [
   { label: '새 상품 (미사용)', desc: '사용하지 않은 새 상품' },
   { label: '사용감 없음', desc: '사용은 했지만 눈에 띄는 흔적이나 얼룩이 없음' },
@@ -39,6 +60,7 @@ export default function ProductUploadPage() {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [aiPrice, setAiPrice] = useState<number | null>(null);
+  const [valuation, setValuation] = useState<AiValuation | null>(null);
   const [retailPrice, setRetailPrice] = useState('');
   const [condition, setCondition] = useState('');
   const [material, setMaterial] = useState<string>('');
@@ -78,12 +100,18 @@ export default function ProductUploadPage() {
     if (!file) return;
     const form = new FormData();
     form.append('file', file);
+    if (material) form.append('material', material);
+    if (mainCat?.name) form.append('category', mainCat.name);
+    if (condition) form.append('condition', condition);
     try {
       setUploading(true);
       const res = await api.post('/products/upload', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setImages((prev) => [...prev, res.data.url].slice(0, 6));
+      if (res.data.valuation && !valuation) {
+        setValuation(res.data.valuation as AiValuation);
+      }
       if (res.data.predicted_price && !aiPrice) {
         setAiPrice(res.data.predicted_price);
         setToast(
@@ -274,6 +302,50 @@ export default function ProductUploadPage() {
           {aiPrice ? (
             <div className="jl-upload-ai">
               <Sparkles size={14} /> AI 감정가 {Math.round(aiPrice / 10000).toLocaleString()}만원 추천
+            </div>
+          ) : null}
+          {valuation ? (
+            <div className="jl-ai-report">
+              <div className="jl-ai-report__head">
+                <Sparkles size={14} />
+                AI 감정 리포트 (프로토타입)
+                <span className="jl-ai-report__conf">
+                  신뢰도 {(valuation.confidence * 100).toFixed(0)}%
+                </span>
+              </div>
+              <ul className="jl-ai-report__list">
+                <li>
+                  <span>추정 중량</span>
+                  <strong>{valuation.breakdown.W_est}g</strong>
+                </li>
+                {valuation.breakdown.W_stone > 0 ? (
+                  <li>
+                    <span>스톤 공제</span>
+                    <strong>−{valuation.breakdown.W_stone}g</strong>
+                  </li>
+                ) : null}
+                <li>
+                  <span>스마트 계수</span>
+                  <strong>
+                    {valuation.breakdown.K_grade} · {valuation.breakdown.K_smart}
+                  </strong>
+                </li>
+                <li>
+                  <span>금 환산가</span>
+                  <strong>
+                    {valuation.breakdown.gold_component.toLocaleString()}원
+                  </strong>
+                </li>
+                <li>
+                  <span>디자인 잔존가</span>
+                  <strong>
+                    {valuation.breakdown.design_component.toLocaleString()}원
+                  </strong>
+                </li>
+              </ul>
+              {valuation.notice ? (
+                <div className="jl-ai-report__notice">{valuation.notice}</div>
+              ) : null}
             </div>
           ) : null}
         </div>

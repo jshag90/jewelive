@@ -86,16 +86,10 @@ export async function loginWithEmail(email: string, password: string): Promise<U
 export async function registerWithEmail(
   email: string,
   password: string,
-  nickname?: string,
+  nickname: string,
 ): Promise<User | null> {
   const credential = await createUserWithEmailAndPassword(auth, email, password);
-  if (nickname && nickname.trim()) {
-    try {
-      await updateProfile(credential.user, { displayName: nickname.trim() });
-    } catch {
-      // ignore profile update failure
-    }
-  }
+  await updateProfile(credential.user, { displayName: nickname.trim() });
   return syncMe();
 }
 

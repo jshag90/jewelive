@@ -21,6 +21,15 @@ export default function RegisterPage() {
       setError('이메일과 비밀번호를 입력해 주세요.');
       return;
     }
+    const trimmedNickname = nickname.trim();
+    if (!trimmedNickname) {
+      setError('닉네임을 입력해 주세요.');
+      return;
+    }
+    if (trimmedNickname.length < 2 || trimmedNickname.length > 20) {
+      setError('닉네임은 2자 이상 20자 이하로 입력해 주세요.');
+      return;
+    }
     if (password.length < 6) {
       setError('비밀번호는 6자 이상이어야 해요.');
       return;
@@ -31,7 +40,7 @@ export default function RegisterPage() {
     }
     try {
       setLoading(true);
-      await registerWithEmail(email, password, nickname || undefined);
+      await registerWithEmail(email, password, trimmedNickname);
       navigate('/', { replace: true });
     } catch (err: any) {
       setError(firebaseAuthErrorMessage(err?.code, err?.message || '회원가입에 실패했어요.'));
@@ -62,9 +71,12 @@ export default function RegisterPage() {
         />
         <input
           type="text"
-          placeholder="닉네임 (선택)"
+          placeholder="닉네임 (2~20자)"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
+          minLength={2}
+          maxLength={20}
+          required
         />
         <input
           type="password"
