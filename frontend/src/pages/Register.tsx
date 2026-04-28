@@ -3,23 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import { registerWithEmail } from '../services/auth';
-
-function firebaseErrorMessage(code?: string, fallback?: string) {
-  switch (code) {
-    case 'auth/email-already-in-use':
-      return '이미 사용 중인 이메일이에요. 로그인해 주세요.';
-    case 'auth/invalid-email':
-      return '이메일 형식이 올바르지 않아요.';
-    case 'auth/weak-password':
-      return '비밀번호는 6자 이상이어야 해요.';
-    case 'auth/operation-not-allowed':
-      return '이메일/비밀번호 가입이 아직 활성화되지 않았어요. 잠시 후 다시 시도해 주세요.';
-    case 'auth/network-request-failed':
-      return '네트워크 오류가 발생했어요. 연결 상태를 확인해 주세요.';
-    default:
-      return fallback || '회원가입에 실패했어요.';
-  }
-}
+import { firebaseAuthErrorMessage } from '../services/firebaseError';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -50,7 +34,7 @@ export default function RegisterPage() {
       await registerWithEmail(email, password, nickname || undefined);
       navigate('/', { replace: true });
     } catch (err: any) {
-      setError(firebaseErrorMessage(err?.code, err?.message));
+      setError(firebaseAuthErrorMessage(err?.code, err?.message || '회원가입에 실패했어요.'));
     } finally {
       setLoading(false);
     }

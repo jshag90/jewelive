@@ -15,18 +15,9 @@ import type { User } from '../types/product';
 
 const USER_KEY = 'jl_user';
 
-// Resolves once Firebase has finished restoring the persisted session on boot.
-// Many components mount before that completes, so we expose a promise instead
-// of a synchronous flag based on auth.currentUser.
-const authReady: Promise<FirebaseUser | null> = new Promise((resolve) => {
-  const unsub = onAuthStateChanged(auth, (user) => {
-    unsub();
-    resolve(user);
-  });
-});
-
-// Surface any pending redirect-based Google sign-in result on app start so the
-// follow-up profile sync runs without a manual trigger.
+// Surface a pending redirect-based Google sign-in result on app boot so the
+// follow-up profile sync runs without a manual trigger after the redirect
+// returns to the SPA.
 void getRedirectResult(auth)
   .then(async (result) => {
     if (result?.user) {
@@ -57,20 +48,17 @@ export function setCachedUser(user: User | null) {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 
-export function currentFirebaseUser(): FirebaseUser | null {
-  return auth.currentUser;
-}
-
-/** Synchronous best-effort check. Use `waitForAuthReady()` if accuracy on first
- *  paint matters (e.g. redirect guards). */
-export function isLoggedIn(): boolean {
-  return !!auth.currentUser;
-}
-
-/** Resolves once the persisted Firebase session has been restored (or proven
- *  absent). Returns the FirebaseUser if signed in. */
+// Resolves with the *current* persisted Firebase session — fresh on every call,
+// not a memoized one-shot, so it works correctly across logout/re-login cycles
+// in the same SPA session.
 export function waitForAuthReady(): Promise<FirebaseUser | null> {
-  return authReady;
+  if (auth.currentUser) return Promise.resolve(auth.currentUser);
+  return new Promise((resolve) => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      unsub();
+      resolve(user);
+    });
+  });
 }
 
 export async function getIdToken(): Promise<string | null> {
@@ -111,24 +99,23 @@ export async function registerWithEmail(
   return syncMe();
 }
 
-function isPopupBlockedError(err: unknown): boolean {
-  const code = (err as { code?: string } | null | undefined)?.code || '';
-  return [
-    'auth/popup-blocked',
-    'auth/popup-closed-by-user',
-    'auth/cancelled-popup-request',
-    'auth/operation-not-supported-in-this-environment',
-    'auth/web-storage-unsupported',
-  ].includes(code);
-}
+const POPUP_FALLBACK_CODES = new Set([
+  'auth/popup-blocked',
+  'auth/popup-closed-by-user',
+  'auth/cancelled-popup-request',
+  'auth/operation-not-supported-in-this-environment',
+  'auth/web-storage-unsupported',
+]);
 
 export async function loginWithGoogle(): Promise<User | null> {
   try {
     await signInWithPopup(auth, googleProvider);
     return syncMe();
   } catch (err) {
-    if (isPopupBlockedError(err)) {
-      // Fallback for in-app browsers / blocked popups: redirect flow.
+    const code = (err as { code?: string } | null | undefined)?.code || '';
+    if (POPUP_FALLBACK_CODES.has(code)) {
+      // Redirect flow lands back on the SPA; the module-level getRedirectResult
+      // handler above will then call syncMe(). Don't double-sync here.
       await signInWithRedirect(auth, googleProvider);
       return null;
     }

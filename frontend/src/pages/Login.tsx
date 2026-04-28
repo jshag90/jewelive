@@ -4,33 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import Toast from '../components/Toast';
 import { loginWithEmail, loginWithGoogle, waitForAuthReady } from '../services/auth';
-
-function firebaseErrorMessage(code?: string, fallback?: string) {
-  switch (code) {
-    case 'auth/invalid-email':
-      return '이메일 형식이 올바르지 않아요.';
-    case 'auth/missing-password':
-      return '비밀번호를 입력해 주세요.';
-    case 'auth/invalid-credential':
-    case 'auth/wrong-password':
-    case 'auth/user-not-found':
-      return '이메일 또는 비밀번호가 일치하지 않아요.';
-    case 'auth/too-many-requests':
-      return '잠시 후 다시 시도해 주세요.';
-    case 'auth/popup-closed-by-user':
-      return '로그인을 취소했어요.';
-    case 'auth/popup-blocked':
-      return '브라우저가 팝업을 차단했어요. 새 창 허용 후 다시 시도해 주세요.';
-    case 'auth/unauthorized-domain':
-      return '이 도메인은 Firebase Authentication에서 승인되지 않았어요. 관리자에게 문의해 주세요.';
-    case 'auth/network-request-failed':
-      return '네트워크 오류가 발생했어요. 연결 상태를 확인해 주세요.';
-    case 'auth/operation-not-allowed':
-      return '이 로그인 방식이 아직 활성화되지 않았어요. 잠시 후 다시 시도해 주세요.';
-    default:
-      return fallback || '로그인에 실패했어요.';
-  }
-}
+import { firebaseAuthErrorMessage } from '../services/firebaseError';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -42,20 +16,17 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
 
+  const redirectTarget = params.get('redirect') || '/';
+
   useEffect(() => {
     let mounted = true;
     waitForAuthReady().then((user) => {
-      if (mounted && user) navigate(redirectTarget(), { replace: true });
+      if (mounted && user) navigate(redirectTarget, { replace: true });
     });
     return () => {
       mounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  function redirectTarget() {
-    return params.get('redirect') || '/';
-  }
+  }, [navigate, redirectTarget]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -67,9 +38,9 @@ export default function LoginPage() {
     try {
       setLoading(true);
       await loginWithEmail(email, password);
-      navigate(redirectTarget(), { replace: true });
+      navigate(redirectTarget, { replace: true });
     } catch (err: any) {
-      setError(firebaseErrorMessage(err?.code, err?.message));
+      setError(firebaseAuthErrorMessage(err?.code, err?.message || '로그인에 실패했어요.'));
     } finally {
       setLoading(false);
     }
@@ -80,9 +51,9 @@ export default function LoginPage() {
     try {
       setGoogleLoading(true);
       await loginWithGoogle();
-      navigate(redirectTarget(), { replace: true });
+      navigate(redirectTarget, { replace: true });
     } catch (err: any) {
-      setError(firebaseErrorMessage(err?.code, err?.message));
+      setError(firebaseAuthErrorMessage(err?.code, err?.message || '로그인에 실패했어요.'));
     } finally {
       setGoogleLoading(false);
     }
