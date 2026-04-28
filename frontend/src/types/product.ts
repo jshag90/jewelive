@@ -11,7 +11,7 @@ export interface User {
 
 export interface Product {
   id: number;
-  seller_id: number;
+  seller_id: string;
   seller?: User | null;
   title: string;
   subtitle?: string | null;

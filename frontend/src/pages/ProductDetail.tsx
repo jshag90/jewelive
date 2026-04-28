@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Eye, Heart, MessageCircle, Share2, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, Eye, Heart, MessageCircle, Settings2, Share2, ShoppingBag } from 'lucide-react';
 import api from '../services/api';
 import AppShell from '../components/AppShell';
 import { formatPriceKrw, timeAgo } from '../lib/format';
-import { waitForAuthReady } from '../services/auth';
+import { onAuthChange, waitForAuthReady } from '../services/auth';
 import Toast from '../components/Toast';
 import type { Product } from '../types/product';
 
@@ -25,6 +25,7 @@ export default function ProductDetailPage() {
   const [imageIdx, setImageIdx] = useState(0);
   const [wished, setWished] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [currentUid, setCurrentUid] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,9 +41,17 @@ export default function ProductDetailPage() {
     })();
   }, [id]);
 
+  useEffect(() => onAuthChange((u) => setCurrentUid(u?.uid ?? null)), []);
+
   const images = useMemo(() => parseImages(product?.images || undefined), [product]);
+  const isOwnProduct =
+    !!currentUid && !!product && String(product.seller_id) === currentUid;
 
   async function toggleWish() {
+    if (isOwnProduct) {
+      setToast('본인이 등록한 상품에는 사용할 수 없어요.');
+      return;
+    }
     const user = await waitForAuthReady();
     if (!user) {
       navigate(`/login?redirect=${encodeURIComponent(`/products/${id}`)}`);
@@ -85,13 +94,16 @@ export default function ProductDetailPage() {
           <ChevronLeft size={20} />
         </button>
         <div className="jl-detail-top-actions">
-          <button type="button" className="jl-detail-back" onClick={toggleWish} aria-label="wish">
-            <Heart size={18} fill={wished ? 'var(--jl-primary)' : 'transparent'} color={wished ? 'var(--jl-primary)' : 'var(--jl-ink)'} />
-          </button>
+          {isOwnProduct ? null : (
+            <button type="button" className="jl-detail-back" onClick={toggleWish} aria-label="wish">
+              <Heart size={18} fill={wished ? 'var(--jl-primary)' : 'transparent'} color={wished ? 'var(--jl-primary)' : 'var(--jl-ink)'} />
+            </button>
+          )}
           <button type="button" className="jl-detail-back" aria-label="share">
             <Share2 size={18} />
           </button>
         </div>
+        {isOwnProduct ? <span className="jl-detail-own-badge">내 상품</span> : null}
         {images.length > 1 ? (
           <div style={{ position: 'absolute', bottom: 12, right: 12, background: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: 12, padding: '3px 10px', borderRadius: 12, zIndex: 3 }}>
             {imageIdx + 1} / {images.length}
@@ -165,15 +177,27 @@ export default function ProductDetailPage() {
       </section>
 
       <footer className="jl-detail-footer">
-        <button type="button" className="jl-detail-footer__wish" onClick={toggleWish} aria-label="wish">
-          <Heart size={20} color={wished ? 'var(--jl-primary)' : 'var(--jl-ink)'} fill={wished ? 'var(--jl-primary)' : 'transparent'} />
-        </button>
-        <Link to="/lounge" className="jl-btn jl-btn--outline jl-detail-footer__chat" style={{ textDecoration: 'none' }}>
-          <MessageCircle size={18} /> 채팅하기
-        </Link>
-        <button type="button" className="jl-btn jl-btn--primary jl-detail-footer__buy">
-          <ShoppingBag size={18} /> 바로구매
-        </button>
+        {isOwnProduct ? (
+          <button
+            type="button"
+            className="jl-btn jl-btn--primary jl-detail-footer__manage"
+            onClick={() => setToast('상품 수정·판매 중지 기능은 곧 제공돼요.')}
+          >
+            <Settings2 size={18} /> 내 상품 관리
+          </button>
+        ) : (
+          <>
+            <button type="button" className="jl-detail-footer__wish" onClick={toggleWish} aria-label="wish">
+              <Heart size={20} color={wished ? 'var(--jl-primary)' : 'var(--jl-ink)'} fill={wished ? 'var(--jl-primary)' : 'transparent'} />
+            </button>
+            <Link to="/lounge" className="jl-btn jl-btn--outline jl-detail-footer__chat" style={{ textDecoration: 'none' }}>
+              <MessageCircle size={18} /> 채팅하기
+            </Link>
+            <button type="button" className="jl-btn jl-btn--primary jl-detail-footer__buy">
+              <ShoppingBag size={18} /> 바로구매
+            </button>
+          </>
+        )}
       </footer>
 
       {toast ? <Toast message={toast} onClose={() => setToast(null)} /> : null}
