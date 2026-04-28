@@ -353,10 +353,10 @@ export default function ProductUploadPage() {
         <div className="jl-upload-row">
           <div className="jl-upload-row__label">정가 (선택)</div>
           <input
-            type="number"
+            type="text"
             placeholder="정가를 입력하면 할인율이 자동 계산됩니다."
-            value={retailPrice}
-            onChange={(e) => setRetailPrice(e.target.value)}
+            value={retailPrice ? Number(retailPrice).toLocaleString() : ''}
+            onChange={(e) => setRetailPrice(e.target.value.replace(/[^0-9]/g, ''))}
             inputMode="numeric"
           />
         </div>
